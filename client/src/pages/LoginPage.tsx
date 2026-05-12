@@ -3,9 +3,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock } from 'lucide-react'
+import { isAxiosError } from 'axios'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/stores/authStore'
+import { authService } from '@/features/auth/services/authService'
 
 const loginSchema = z.object({
   email: z.string().email('Introduce un email válido'),
@@ -29,32 +31,17 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Mock — lo reemplazaremos por authService.login(data) cuando tengamos backend
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Simulamos la respuesta del servidor
-      setAuth(
-        {
-          id: '1',
-          name: 'Joel Osorio',
-          email: data.email,
-          avatar: null,
-          bio: null,
-          location: 'Madrid',
-          instruments: ['Guitarra'],
-          genres: ['Rock', 'Shoegaze'],
-          createdAt: new Date().toISOString(),
-        },
-        {
-          accessToken: 'mock-access-token',
-          refreshToken: 'mock-refresh-token',
-        }
-      )
-
+      const response = await authService.login(data)
+      setAuth(response.user, response.tokens)
       navigate('/feed')
-    } catch {
-      // Cuando conectemos el backend real, aquí manejaremos errores como "credenciales incorrectas"
-      setError('root', { message: 'Email o contraseña incorrectos' })
+    } catch (error) {
+      // isAxiosError nos permite distinguir errores de red de errores del servidor
+      if (isAxiosError(error)) {
+        const message = error.response?.data?.message ?? 'Error al conectar con el servidor'
+        setError('root', { message })
+      } else {
+        setError('root', { message: 'Algo salió mal. Inténtalo de nuevo.' })
+      }
     }
   }
 
@@ -84,9 +71,10 @@ export function LoginPage() {
           {...register('password')}
         />
 
-        {/* Error general del formulario — credenciales incorrectas, etc. */}
         {errors.root && (
-          <p className="text-sm text-red-400 text-center">{errors.root.message}</p>
+          <p className="text-sm text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg py-2.5 px-3">
+            {errors.root.message}
+          </p>
         )}
 
         <div className="flex justify-end">

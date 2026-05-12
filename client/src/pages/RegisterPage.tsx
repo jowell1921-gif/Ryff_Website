@@ -1,10 +1,13 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { User, Mail, Lock } from 'lucide-react'
+import { isAxiosError } from 'axios'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useAuthStore } from '@/stores/authStore'
+import { authService } from '@/features/auth/services/authService'
 
 const registerSchema = z
   .object({
@@ -19,23 +22,46 @@ const registerSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Las contraseñas no coinciden',
-    path: ['confirmPassword'], // el error aparece bajo confirmPassword
+    path: ['confirmPassword'],
   })
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
 export function RegisterPage() {
+  const navigate = useNavigate()
+  const setAuth = useAuthStore((state) => state.setAuth)
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   })
 
   const onSubmit = async (data: RegisterFormData) => {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    console.warn('Registro con:', data)
+    try {
+      const response = await authService.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      })
+      setAuth(response.user, response.tokens)
+      navigate('/feed')
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const message = error.response?.data?.message ?? 'Error al crear la cuenta'
+        // Si el servidor dice que el email ya existe, lo mostramos en el campo email
+        if (error.response?.status === 409) {
+          setError('email', { message: 'Este email ya está registrado' })
+        } else {
+          setError('root', { message })
+        }
+      } else {
+        setError('root', { message: 'Algo salió mal. Inténtalo de nuevo.' })
+      }
+    }
   }
 
   return (
@@ -80,6 +106,12 @@ export function RegisterPage() {
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
+
+        {errors.root && (
+          <p className="text-sm text-red-400 text-center bg-red-500/10 border border-red-500/20 rounded-lg py-2.5 px-3">
+            {errors.root.message}
+          </p>
+        )}
 
         <Button type="submit" variant="primary" size="lg" isLoading={isSubmitting} className="w-full mt-2">
           {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
