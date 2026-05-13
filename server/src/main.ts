@@ -1,10 +1,13 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
+import { IoAdapter } from '@nestjs/platform-socket.io'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  // IoAdapter conecta Socket.io al mismo servidor HTTP — comparten el puerto 3000
+  app.useWebSocketAdapter(new IoAdapter(app))
   app.setGlobalPrefix('api')
 
   app.useGlobalPipes(
@@ -16,7 +19,7 @@ async function bootstrap() {
   )
 
   app.enableCors({
-    origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+    origin: true, // en desarrollo acepta cualquier origen; en producción usar CLIENT_URL
     credentials: true,
   })
 

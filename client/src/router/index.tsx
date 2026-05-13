@@ -6,9 +6,10 @@ import { FeedPage } from '@/pages/FeedPage'
 import { DiscoverPage } from '@/pages/DiscoverPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { ProfilePage } from '@/pages/ProfilePage'
+import { MessagesPage } from '@/pages/MessagesPage'
 
 export const router = createBrowserRouter([
-  // Rutas de auth — sin sidebar, sin protección
   {
     path: '/auth',
     element: <AuthLayout />,
@@ -18,8 +19,6 @@ export const router = createBrowserRouter([
       { path: 'register', element: <RegisterPage /> },
     ],
   },
-
-  // Rutas protegidas — requieren estar logueado
   {
     path: '/',
     element: <ProtectedRoute />,
@@ -30,6 +29,10 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/feed" replace /> },
           { path: 'feed', element: <FeedPage /> },
           { path: 'discover', element: <DiscoverPage /> },
+          { path: 'profile', element: <ProfilePage /> },
+          { path: 'profile/:id', element: <ProfilePage /> },
+          { path: 'messages', element: <MessagesPage /> },
+          { path: 'messages/:conversationId', element: <MessagesPage /> },
         ],
       },
     ],

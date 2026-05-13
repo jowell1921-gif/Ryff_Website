@@ -3,6 +3,7 @@ import { Home, Compass, Users, MessageCircle, User, Settings, Music2, LogOut } f
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/Avatar'
 import { useAuthStore } from '@/stores/authStore'
+import { useNotificationStore } from '@/stores/notificationStore'
 
 const navItems = [
   { to: '/feed', icon: Home, label: 'Inicio' },
@@ -16,6 +17,7 @@ export function Sidebar() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const totalUnread = useNotificationStore((s) => s.totalUnread())
 
   const handleLogout = () => {
     logout()
@@ -51,7 +53,13 @@ export function Sidebar() {
             }
           >
             <Icon size={18} />
-            {label}
+            <span className="flex-1">{label}</span>
+            {/* Badge de no leídos — solo en Mensajes */}
+            {to === '/messages' && totalUnread > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-purple-600 text-white text-[10px] font-bold flex items-center justify-center">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

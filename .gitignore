@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno — NUNCA subas esto a Git
+.env
+.env.local
+.env.production
+
+# Builds
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/settings.json
+.idea/
+
+# Claude Code (memoria privada del asistente)
+.claude/
