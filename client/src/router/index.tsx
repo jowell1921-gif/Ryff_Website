@@ -8,6 +8,9 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { MessagesPage } from '@/pages/MessagesPage'
+import { BandsPage } from '@/pages/BandsPage'
+import { BandProfilePage } from '@/pages/BandProfilePage'
+import { ReelsPage } from '@/pages/ReelsPage'
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +32,9 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/feed" replace /> },
           { path: 'feed', element: <FeedPage /> },
           { path: 'discover', element: <DiscoverPage /> },
+          { path: 'bands', element: <BandsPage /> },
+          { path: 'bands/:id', element: <BandProfilePage /> },
+          { path: 'reels', element: <ReelsPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'profile/:id', element: <ProfilePage /> },
           { path: 'messages', element: <MessagesPage /> },

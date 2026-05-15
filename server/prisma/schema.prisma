@@ -25,6 +25,9 @@ model User {
   following     Follow[]       @relation("follower")
   conversations Conversation[] @relation("ConversationParticipants")
   sentMessages  Message[]
+  bandMembers   BandMember[]
+  reels         Reel[]
+  reelLikes     ReelLike[]
 
   @@map("users")
 }
@@ -72,4 +75,64 @@ model Follow {
 
   @@id([followerId, followingId])
   @@map("follows")
+}
+
+model Band {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  genres      String[]
+  location    String?
+  avatar      String?
+  banner      String?
+  lookingFor  String[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  members     BandMember[]
+
+  @@map("bands")
+}
+
+model BandMember {
+  id         String   @id @default(cuid())
+  role       BandRole @default(MEMBER)
+  instrument String?
+  joinedAt   DateTime @default(now())
+  userId     String
+  bandId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  band       Band     @relation(fields: [bandId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bandId])
+  @@map("band_members")
+}
+
+enum BandRole {
+  ADMIN
+  MEMBER
+}
+
+model Reel {
+  id           String     @id @default(cuid())
+  videoUrl     String
+  thumbnailUrl String?
+  publicId     String
+  caption      String?
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes        ReelLike[]
+  createdAt    DateTime   @default(now())
+
+  @@map("reels")
+}
+
+model ReelLike {
+  userId    String
+  reelId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel      Reel     @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, reelId])
+  @@map("reel_likes")
 }

@@ -16,12 +16,7 @@ export function useChatSocket() {
 
     const socket = socketClient.connect(tokens.accessToken)
 
-    socket.on('connect', () => console.log('[socket] conectado, id:', socket.id))
-    socket.on('connect_error', (err) => console.error('[socket] error de conexión:', err.message))
-
     const handleNewMessage = (message: ChatMessage) => {
-      console.log('[socket] newMessage recibido:', message.id, 'conversación:', message.conversationId)
-      console.log('[socket] pathname actual:', window.location.pathname)
       // 1. Actualiza el cache — evita duplicados si el mensaje llega
       //    tanto por la room de conversación como por la room personal
       queryClient.setQueryData<ChatMessage[]>(
@@ -36,19 +31,16 @@ export function useChatSocket() {
 
       // 3. Si el usuario NO está viendo esa conversación: notificar
       const isViewingConversation = window.location.pathname.includes(message.conversationId)
-      console.log('[socket] isViewingConversation:', isViewingConversation)
       if (!isViewingConversation) {
         addUnread(message.conversationId)
 
-        const toastData = {
+        // Toast in-app
+        setToast({
           conversationId: message.conversationId,
           senderName: message.sender.name,
           senderAvatar: message.sender.avatar,
           content: message.content,
-        }
-        console.log('[toast] llamando setToast con:', toastData)
-        // Toast in-app
-        setToast(toastData)
+        })
 
         // Notificación del navegador (si el usuario dio permiso y la pestaña no está activa)
         if (

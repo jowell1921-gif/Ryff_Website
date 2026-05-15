@@ -10,8 +10,6 @@ export function MessageToast() {
   const toast = useNotificationStore((s) => s.toast)
   const clearToast = useNotificationStore((s) => s.clearToast)
 
-  console.log('[MessageToast] render — toast:', toast)
-
   // Auto-dismiss después de 4 segundos
   useEffect(() => {
     if (!toast) return

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Compass, Users, MessageCircle, User, Settings, Music2, LogOut } from 'lucide-react'
+import { Home, Compass, Users, MessageCircle, User, Settings, Music2, LogOut, Clapperboard } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/Avatar'
 import { useAuthStore } from '@/stores/authStore'
@@ -8,6 +8,7 @@ import { useNotificationStore } from '@/stores/notificationStore'
 const navItems = [
   { to: '/feed', icon: Home, label: 'Inicio' },
   { to: '/discover', icon: Compass, label: 'Descubrir' },
+  { to: '/reels', icon: Clapperboard, label: 'Reels' },
   { to: '/bands', icon: Users, label: 'Bandas' },
   { to: '/messages', icon: MessageCircle, label: 'Mensajes' },
   { to: '/profile', icon: User, label: 'Mi perfil' },
