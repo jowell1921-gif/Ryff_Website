@@ -1,3 +1,13 @@
+export interface UserSuggestion {
+  id: string
+  name: string
+  avatar: string | null
+  instruments: string[]
+  mainInstrument: string | null
+  inBand: boolean
+  isFollowing: boolean
+}
+
 export interface UserProfile {
   id: string
   name: string
@@ -5,6 +15,7 @@ export interface UserProfile {
   bio: string | null
   location: string | null
   instruments: string[]
+  mainInstrument: string | null
   genres: string[]
   createdAt: string
   isFollowing: boolean

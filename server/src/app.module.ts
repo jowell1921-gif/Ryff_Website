@@ -8,6 +8,8 @@ import { ChatModule } from './chat/chat.module'
 import { BandsModule } from './bands/bands.module'
 import { CloudinaryModule } from './cloudinary/cloudinary.module'
 import { ReelsModule } from './reels/reels.module'
+import { NotificationsModule } from './notifications/notifications.module'
+import { CommentsModule } from './comments/comments.module'
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { ReelsModule } from './reels/reels.module'
     BandsModule,
     CloudinaryModule,
     ReelsModule,
+    NotificationsModule,
+    CommentsModule,
   ],
 })
 export class AppModule {}

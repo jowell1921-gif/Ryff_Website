@@ -22,6 +22,11 @@ export class UpdateProfileDto {
   instruments?: string[]
 
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  mainInstrument?: string
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   genres?: string[]

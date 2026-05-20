@@ -60,7 +60,8 @@ export function TagSelector({
           {selected.map((item) => (
             <span
               key={item}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-600 text-white border border-purple-500"
+              className="flex items-center gap-1.5 rounded-full font-semibold bg-purple-600 text-white border border-purple-500"
+              style={{ padding: '5px 12px', fontSize: 12 }}
             >
               {item}
               <button
@@ -107,8 +108,9 @@ export function TagSelector({
                   type="button"
                   onClick={() => toggle(item)}
                   disabled={isMaxReached}
+                  style={{ padding: '5px 12px', fontSize: 12 }}
                   className={cn(
-                    'flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border transition-all',
+                    'flex items-center gap-1 rounded-full font-medium border transition-all',
                     isSelected
                       ? 'bg-purple-600 text-white border-purple-500'
                       : isMaxReached

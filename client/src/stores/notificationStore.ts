@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { AppNotification } from '@/types/notification.types'
 
 interface ToastMessage {
   conversationId: string
@@ -8,6 +9,7 @@ interface ToastMessage {
 }
 
 interface NotificationState {
+  // Chat
   unreadCounts: Record<string, number>
   toast: ToastMessage | null
   addUnread: (conversationId: string) => void
@@ -15,9 +17,19 @@ interface NotificationState {
   totalUnread: () => number
   setToast: (toast: ToastMessage) => void
   clearToast: () => void
+
+  // Notificaciones de la app
+  unreadNotifications: number
+  setUnreadNotifications: (count: number) => void
+  incrementUnreadNotifications: () => void
+  clearUnreadNotifications: () => void
+  pendingNotification: AppNotification | null
+  setPendingNotification: (n: AppNotification) => void
+  clearPendingNotification: () => void
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
+  // Chat
   unreadCounts: {},
   toast: null,
 
@@ -41,4 +53,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   setToast: (toast) => set({ toast }),
   clearToast: () => set({ toast: null }),
+
+  // Notificaciones
+  unreadNotifications: 0,
+  setUnreadNotifications: (count) => set({ unreadNotifications: count }),
+  incrementUnreadNotifications: () =>
+    set((state) => ({ unreadNotifications: state.unreadNotifications + 1 })),
+  clearUnreadNotifications: () => set({ unreadNotifications: 0 }),
+  pendingNotification: null,
+  setPendingNotification: (n) => set({ pendingNotification: n }),
+  clearPendingNotification: () => set({ pendingNotification: null }),
 }))

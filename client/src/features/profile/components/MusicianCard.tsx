@@ -19,7 +19,7 @@ export function MusicianCard({ musician, index }: MusicianCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.35, ease: 'easeOut' }}
       onClick={() => navigate(`/profile/${musician.id}`)}
-      className="flex items-start gap-4 p-4 rounded-2xl bg-[var(--color-surface-2)] border border-[var(--color-border)]
+      className="flex items-start gap-4 p-5 rounded-2xl bg-[var(--color-surface-2)] border border-[var(--color-border)]
         hover:border-purple-600/40 hover:bg-[var(--color-surface-3,var(--color-surface-2))]
         cursor-pointer transition-all group"
     >
@@ -62,11 +62,12 @@ export function MusicianCard({ musician, index }: MusicianCardProps) {
 
         {/* Instrumentos + géneros */}
         {(musician.instruments.length > 0 || musician.genres.length > 0) && (
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
             {musician.instruments.slice(0, 2).map((inst) => (
               <span
                 key={inst}
-                className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25"
+                className="rounded-full border border-purple-500/30 bg-purple-500/10 font-semibold"
+                style={{ padding: '5px 12px', fontSize: 12, color: 'white' }}
               >
                 {inst}
               </span>
@@ -74,7 +75,8 @@ export function MusicianCard({ musician, index }: MusicianCardProps) {
             {musician.genres.slice(0, 2).map((genre) => (
               <span
                 key={genre}
-                className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)]"
+                className="rounded-full bg-purple-600 text-white border border-purple-500 font-semibold"
+                style={{ padding: '5px 12px', fontSize: 12 }}
               >
                 {genre}
               </span>

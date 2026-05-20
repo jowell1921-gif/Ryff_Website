@@ -19,7 +19,7 @@ export function BandsPage() {
   const { data: bands = [], isLoading } = useBands(debouncedSearch, activeGenre)
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div style={{ maxWidth: 1024, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24 }}>
 
       {/* Cabecera */}
       <div className="flex items-center justify-between mb-6">
@@ -39,25 +39,27 @@ export function BandsPage() {
       </div>
 
       {/* Buscador */}
-      <div className="relative mb-4">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
+      <div className="relative" style={{ marginBottom: 20 }}>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar bandas..."
-          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
+          style={{ paddingLeft: 16, paddingRight: 44, paddingTop: 14, paddingBottom: 14 }}
         />
+        <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
       </div>
 
       {/* Filtros de género */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
         <button
           onClick={() => setActiveGenre(undefined)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+          className={`rounded-full font-semibold transition-colors ${
             !activeGenre
-              ? 'bg-purple-600 text-white'
+              ? 'bg-purple-600 text-white border border-purple-500'
               : 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:text-[var(--color-text)]'
           }`}
+          style={{ padding: '5px 12px', fontSize: 12 }}
         >
           Todos
         </button>
@@ -65,11 +67,12 @@ export function BandsPage() {
           <button
             key={g}
             onClick={() => setActiveGenre(activeGenre === g ? undefined : g)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            className={`rounded-full font-semibold transition-colors ${
               activeGenre === g
-                ? 'bg-purple-600 text-white'
+                ? 'bg-purple-600 text-white border border-purple-500'
                 : 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:text-[var(--color-text)]'
             }`}
+            style={{ padding: '5px 12px', fontSize: 12 }}
           >
             {g}
           </button>

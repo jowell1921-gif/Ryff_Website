@@ -51,7 +51,7 @@ export function DiscoverPage() {
   const clearFilters = () => { setInstrument(undefined); setGenre(undefined) }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
+    <div style={{ maxWidth: 672, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingTop: 32, paddingBottom: 32, display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       {/* Header */}
       <motion.div
@@ -114,16 +114,17 @@ export function DiscoverPage() {
             <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-widest">
               Instrumento
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {INSTRUMENT_FILTERS.map((inst) => (
                 <button
                   key={inst}
                   onClick={() => setInstrument(instrument === inst ? undefined : inst)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all
+                  className={`rounded-full font-semibold border transition-all
                     ${instrument === inst
                       ? 'bg-purple-600 text-white border-purple-500'
                       : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-purple-500/50 hover:text-purple-300'
                     }`}
+                  style={{ padding: '5px 12px', fontSize: 12 }}
                 >
                   {inst}
                 </button>
@@ -136,16 +137,17 @@ export function DiscoverPage() {
             <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-widest">
               Género
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {GENRE_FILTERS.map((g) => (
                 <button
                   key={g}
                   onClick={() => setGenre(genre === g ? undefined : g)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all
+                  className={`rounded-full font-semibold border transition-all
                     ${genre === g
                       ? 'bg-purple-600 text-white border-purple-500'
                       : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-purple-500/50 hover:text-purple-300'
                     }`}
+                  style={{ padding: '5px 12px', fontSize: 12 }}
                 >
                   {g}
                 </button>

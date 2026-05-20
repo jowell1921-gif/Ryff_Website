@@ -6,7 +6,7 @@ export function FeedPage() {
   const { data, isLoading, isError } = useFeed()
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
+    <div style={{ maxWidth: 672, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingTop: 32, paddingBottom: 32, display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       <h1 className="text-xl font-bold text-[var(--color-text)]">Inicio</h1>
 

@@ -23,18 +23,20 @@ export function CreatePost() {
   }
 
   return (
-    <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl p-5 flex gap-4">
-      <Avatar size="md" alt={user?.name ?? ''} src={user?.avatar ?? null} />
+    <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl" style={{ display: 'flex', gap: 10, padding: 12 }}>
+      <Avatar size="md" alt={user?.name ?? ''} src={user?.avatar ?? null} className="shrink-0 mt-0.5" />
 
-      <div className="flex-1 flex flex-col gap-3">
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="¿Qué está sonando hoy? Pega un enlace de YouTube, Spotify o SoundCloud..."
-          rows={3}
-          className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none resize-none leading-relaxed"
-        />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="bg-[var(--color-surface)] rounded-xl border border-purple-500/30 focus-within:border-purple-500/70 transition-colors" style={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 16, paddingRight: 16 }}>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="¿Qué está sonando hoy? Pega un enlace de YouTube, Spotify o SoundCloud..."
+            rows={3}
+            className="w-full bg-transparent text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none resize-none leading-relaxed"
+          />
+        </div>
 
         {/* Preview del embed en tiempo real */}
         {embed && (
@@ -59,7 +61,7 @@ export function CreatePost() {
           </span>
           <Button
             variant="primary"
-            size="sm"
+            size="md"
             onClick={handleSubmit}
             isLoading={isPending}
             disabled={!content.trim() || content.length > 500}

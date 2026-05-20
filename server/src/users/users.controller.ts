@@ -10,8 +10,14 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { diskStorage } from 'multer'
+import { extname, join } from 'path'
 import { UsersService } from './users.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
 import { CurrentUser } from '../auth/current-user.decorator'
@@ -20,6 +26,11 @@ import { CurrentUser } from '../auth/current-user.decorator'
 @UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @Get('suggestions')
+  getSuggestions(@CurrentUser('sub') viewerId: string) {
+    return this.usersService.getSuggestions(viewerId)
+  }
 
   // Buscar músicos — GET /users?search=&instrument=&genre=
   // Debe ir ANTES que :id para que NestJS no lo confunda con un parámetro
@@ -46,6 +57,31 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
   ) {
     return this.usersService.updateProfile(userId, dto)
+  }
+
+  // Subir avatar
+  @Post('me/avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    storage: diskStorage({
+      destination: join(process.cwd(), 'uploads', 'avatars'),
+      filename: (_req, file, cb) => {
+        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`
+        cb(null, unique)
+      },
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (!file.mimetype.match(/^image\//)) return cb(new BadRequestException('Solo imágenes'), false)
+      cb(null, true)
+    },
+  }))
+  uploadAvatar(
+    @CurrentUser('sub') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const port = process.env.PORT ?? 3000
+    const avatarUrl = `http://localhost:${port}/uploads/avatars/${file.filename}`
+    return this.usersService.updateAvatar(userId, avatarUrl)
   }
 
   // Perfil público — incluye isFollowing para el viewer

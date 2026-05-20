@@ -25,6 +25,9 @@ interface EditProfileModalProps {
 
 export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
   const [location, setLocation] = useState(profile.location ?? '')
+  const [mainInstrument, setMainInstrument] = useState<string[]>(
+    profile.mainInstrument ? [profile.mainInstrument] : []
+  )
   const [instruments, setInstruments] = useState<string[]>(profile.instruments)
   const [genres, setGenres] = useState<string[]>(profile.genres)
 
@@ -53,7 +56,7 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
 
   const onSubmit = (data: EditFormData) => {
     updateProfile(
-      { ...data, location, instruments, genres },
+      { ...data, location, mainInstrument: mainInstrument[0] ?? null, instruments, genres },
       { onSuccess: onClose }
     )
   }
@@ -66,17 +69,18 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
       {/* Modal */}
       <div className="relative bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface-2)] z-10">
+        <div className="border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface-2)] z-10" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           <h2 className="text-lg font-bold text-[var(--color-text)]">Editar perfil</h2>
           <button
             onClick={onClose}
             className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+            style={{ position: 'absolute', right: 24, top: '50%', transform: 'translateY(-50%)' }}
           >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 flex flex-col gap-6">
+        <form onSubmit={handleSubmit(onSubmit)} style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Nombre */}
           <Input
             label="Nombre artístico"
@@ -85,13 +89,14 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
           />
 
           {/* Bio */}
-          <div className="flex flex-col gap-1.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label className="text-sm font-medium text-[var(--color-text-muted)]">Bio</label>
             <textarea
               {...register('bio')}
               rows={3}
               placeholder="Cuéntale al mundo quién eres musicalmente..."
-              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 resize-none transition-colors"
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 resize-none transition-colors"
+              style={{ padding: '14px 12px' }}
             />
             {errors.bio && (
               <p className="text-xs text-red-400">{errors.bio.message}</p>
@@ -100,6 +105,16 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
 
           {/* Ubicación con autocompletado */}
           <LocationAutocomplete value={location} onChange={setLocation} />
+
+          {/* Instrumento principal */}
+          <TagSelector
+            label="Instrumento principal"
+            placeholder="Buscar instrumento..."
+            options={INSTRUMENTS}
+            selected={mainInstrument}
+            onChange={setMainInstrument}
+            maxItems={1}
+          />
 
           {/* Instrumentos */}
           <TagSelector
@@ -122,7 +137,7 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
           />
 
           {/* Acciones */}
-          <div className="flex gap-3 pt-2">
+          <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
             <Button
               type="button"
               variant="secondary"

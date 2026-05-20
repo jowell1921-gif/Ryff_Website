@@ -54,7 +54,8 @@ export function ReelPlayer({ reel, isMuted, onMuteToggle }: ReelPlayerProps) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen flex items-center justify-center bg-black snap-start"
+      className="relative flex items-center justify-center bg-black"
+      style={{ width: '100%', height: '100vh', flexShrink: 0, scrollSnapAlign: 'start' }}
     >
       {/* Vídeo */}
       <video

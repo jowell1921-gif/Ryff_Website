@@ -118,4 +118,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   isOnline(userId: string): boolean {
     return this.onlineUsers.has(userId)
   }
+
+  emitToUser(userId: string, event: string, data: unknown) {
+    this.server.to(`user:${userId}`).emit(event, data)
+  }
 }

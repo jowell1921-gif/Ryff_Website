@@ -39,11 +39,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             type={resolvedType}
             style={{
               paddingLeft: leftIcon ? '2.25rem' : '0.75rem',
-              // Deja espacio a la derecha para el botón del ojo
               paddingRight: isPassword ? '2.5rem' : '0.75rem',
+              paddingTop: 16,
+              paddingBottom: 16,
             }}
             className={cn(
-              'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg py-2.5 text-sm text-[var(--color-text)] outline-none transition-all duration-200',
+              'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text)] outline-none transition-all duration-200',
               // El placeholder desaparece al enfocar el campo
               'placeholder:text-[var(--color-text-muted)] placeholder:transition-opacity focus:placeholder:opacity-0',
               'focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30',

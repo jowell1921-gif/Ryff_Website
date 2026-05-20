@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { UserProfile } from '@/types/user.types'
+import type { UserProfile, UserSuggestion } from '@/types/user.types'
 import type { Post } from '@/types/post.types'
 
 export interface SearchUsersParams {
@@ -34,6 +34,20 @@ export const profileService = {
 
   searchUsers: async (params: SearchUsersParams): Promise<UserProfile[]> => {
     const { data } = await api.get<UserProfile[]>('/users', { params })
+    return data
+  },
+
+  getSuggestions: async (): Promise<UserSuggestion[]> => {
+    const { data } = await api.get<UserSuggestion[]>('/users/suggestions')
+    return data
+  },
+
+  uploadAvatar: async (file: File): Promise<{ avatar: string }> => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    const { data } = await api.post<{ avatar: string }>('/users/me/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
   },
 }

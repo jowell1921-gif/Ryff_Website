@@ -33,13 +33,13 @@ export function BandCard({ band }: BandCardProps) {
         </div>
       </div>
 
-      <div className="pt-7 px-4 pb-4">
+      <div style={{ paddingTop: 32, paddingLeft: 20, paddingRight: 20, paddingBottom: 20 }}>
         {/* Nombre y ubicación */}
         <h3 className="text-sm font-bold text-[var(--color-text)] group-hover:text-purple-300 transition-colors truncate">
           {band.name}
         </h3>
         {band.location && (
-          <div className="flex items-center gap-1 mt-0.5">
+          <div className="flex items-center gap-1" style={{ marginTop: 4 }}>
             <MapPin size={11} className="text-[var(--color-text-muted)]" />
             <span className="text-xs text-[var(--color-text-muted)] truncate">{band.location}</span>
           </div>
@@ -47,11 +47,12 @@ export function BandCard({ band }: BandCardProps) {
 
         {/* Géneros */}
         {band.genres.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
             {band.genres.slice(0, 3).map((g) => (
               <span
                 key={g}
-                className="px-2 py-0.5 rounded-full bg-purple-600/15 text-purple-300 text-[10px] font-medium"
+                className="rounded-full bg-purple-600 text-white border border-purple-500 font-semibold"
+                style={{ padding: '5px 12px', fontSize: 12 }}
               >
                 {g}
               </span>
@@ -61,13 +62,13 @@ export function BandCard({ band }: BandCardProps) {
 
         {/* Buscamos */}
         {band.lookingFor.length > 0 && (
-          <p className="text-xs text-amber-400/80 mt-2 truncate">
+          <p className="text-xs text-amber-400/80 truncate" style={{ marginTop: 8 }}>
             Buscamos: {band.lookingFor.join(', ')}
           </p>
         )}
 
         {/* Miembros */}
-        <div className="flex items-center gap-1 mt-3 text-xs text-[var(--color-text-muted)]">
+        <div className="flex items-center gap-1 text-xs text-[var(--color-text-muted)]" style={{ marginTop: 12 }}>
           <Users size={12} />
           <span>{band._count.members} {band._count.members === 1 ? 'miembro' : 'miembros'}</span>
         </div>

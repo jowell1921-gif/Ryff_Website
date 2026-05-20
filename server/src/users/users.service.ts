@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
+import { NotificationsService } from '../notifications/notifications.service'
 
 const publicUserSelect = {
   id: true,
@@ -13,6 +14,7 @@ const publicUserSelect = {
   bio: true,
   location: true,
   instruments: true,
+  mainInstrument: true,
   genres: true,
   createdAt: true,
   _count: {
@@ -26,7 +28,10 @@ const publicUserSelect = {
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async findById(id: string, viewerId?: string) {
     const user = await this.prisma.user.findUnique({
@@ -56,6 +61,15 @@ export class UsersService {
     })
   }
 
+  async updateAvatar(userId: string, avatarUrl: string) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+      select: { avatar: true },
+    })
+    return user
+  }
+
   async getUserPosts(userId: string) {
     return this.prisma.post.findMany({
       where: { authorId: userId },
@@ -77,14 +91,17 @@ export class UsersService {
     if (followerId === followingId) {
       throw new BadRequestException('No puedes seguirte a ti mismo')
     }
-    // upsert evita duplicados sin lanzar error si ya existe el follow
-    await this.prisma.follow.upsert({
-      where: {
-        followerId_followingId: { followerId, followingId },
-      },
-      create: { followerId, followingId },
-      update: {},
+
+    const existing = await this.prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId, followingId } },
     })
+
+    if (!existing) {
+      await this.prisma.follow.create({ data: { followerId, followingId } })
+      // Solo notificamos si es un follow nuevo (no repetido)
+      await this.notifications.create('FOLLOW', followerId, followingId)
+    }
+
     return { success: true }
   }
 
@@ -94,6 +111,34 @@ export class UsersService {
       where: { followerId, followingId },
     })
     return { success: true }
+  }
+
+  async getSuggestions(viewerId: string, limit = 4) {
+    const users = await this.prisma.user.findMany({
+      where: { id: { not: viewerId } },
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        instruments: true,
+        mainInstrument: true,
+        _count: { select: { bandMembers: true } },
+        followers: {
+          where: { followerId: viewerId },
+          select: { followerId: true },
+        },
+      },
+      take: limit * 3,
+      orderBy: { createdAt: 'desc' },
+    })
+
+    const shuffled = users.sort(() => 0.5 - Math.random()).slice(0, limit)
+
+    return shuffled.map(({ followers, _count, ...user }) => ({
+      ...user,
+      inBand: _count.bandMembers > 0,
+      isFollowing: followers.length > 0,
+    }))
   }
 
   async searchUsers(

@@ -28,7 +28,7 @@ export function MessagesPage() {
   })
 
   return (
-    <div className="flex h-screen">
+    <div style={{ display: 'flex', height: '100vh' }}>
 
       {/* Panel izquierdo — lista de conversaciones */}
       <div className={`

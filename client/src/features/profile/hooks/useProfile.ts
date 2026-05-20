@@ -119,3 +119,27 @@ export function useSearchUsers(params: SearchUsersParams) {
     queryFn: () => profileService.searchUsers(params),
   })
 }
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient()
+  const user = useAuthStore((state) => state.user)
+  const updateUser = useAuthStore((state) => state.updateUser)
+
+  return useMutation({
+    mutationFn: profileService.uploadAvatar,
+    onSuccess: ({ avatar }) => {
+      updateUser({ avatar })
+      queryClient.setQueryData(['profile', user?.id], (old: UserProfile | undefined) =>
+        old ? { ...old, avatar } : old
+      )
+    },
+  })
+}
+
+export function useUserSuggestions() {
+  return useQuery({
+    queryKey: ['userSuggestions'],
+    queryFn: () => profileService.getSuggestions(),
+    staleTime: 1000 * 60 * 5,
+  })
+}

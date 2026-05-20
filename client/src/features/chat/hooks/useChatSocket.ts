@@ -4,12 +4,15 @@ import { useAuthStore } from '@/stores/authStore'
 import { useNotificationStore } from '@/stores/notificationStore'
 import { socketClient } from '../socket/socketClient'
 import type { ChatMessage } from '@/types/chat.types'
+import type { AppNotification } from '@/types/notification.types'
 
 export function useChatSocket() {
   const queryClient = useQueryClient()
   const tokens = useAuthStore((s) => s.tokens)
   const addUnread = useNotificationStore((s) => s.addUnread)
   const setToast = useNotificationStore((s) => s.setToast)
+  const incrementUnreadNotifications = useNotificationStore((s) => s.incrementUnreadNotifications)
+  const setPendingNotification = useNotificationStore((s) => s.setPendingNotification)
 
   useEffect(() => {
     if (!tokens?.accessToken) return
@@ -55,11 +58,19 @@ export function useChatSocket() {
       }
     }
 
+    const handleNotification = (notification: AppNotification) => {
+      incrementUnreadNotifications()
+      setPendingNotification(notification)
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    }
+
     socket.on('newMessage', handleNewMessage)
+    socket.on('notification', handleNotification)
 
     return () => {
       socket.off('newMessage', handleNewMessage)
+      socket.off('notification', handleNotification)
       socketClient.disconnect()
     }
-  }, [tokens?.accessToken, queryClient, addUnread, setToast])
+  }, [tokens?.accessToken, queryClient, addUnread, setToast, incrementUnreadNotifications, setPendingNotification])
 }

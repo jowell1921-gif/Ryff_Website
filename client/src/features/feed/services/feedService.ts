@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { FeedResponse, Post } from '@/types/post.types'
+import type { FeedResponse, Post, ReactResponse, ReactionType } from '@/types/post.types'
 
 export const feedService = {
   getPosts: async (page = 1): Promise<FeedResponse> => {
@@ -9,6 +9,11 @@ export const feedService = {
 
   createPost: async (content: string, mediaUrl?: string): Promise<Post> => {
     const { data } = await api.post<Post>('/posts', { content, mediaUrl })
+    return data
+  },
+
+  reactToPost: async (postId: string, type: ReactionType): Promise<ReactResponse> => {
+    const { data } = await api.post<ReactResponse>(`/posts/${postId}/react`, { type })
     return data
   },
 }

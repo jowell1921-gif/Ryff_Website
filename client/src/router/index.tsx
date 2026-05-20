@@ -11,6 +11,8 @@ import { MessagesPage } from '@/pages/MessagesPage'
 import { BandsPage } from '@/pages/BandsPage'
 import { BandProfilePage } from '@/pages/BandProfilePage'
 import { ReelsPage } from '@/pages/ReelsPage'
+import { NotificationsPage } from '@/pages/NotificationsPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -35,10 +37,12 @@ export const router = createBrowserRouter([
           { path: 'bands', element: <BandsPage /> },
           { path: 'bands/:id', element: <BandProfilePage /> },
           { path: 'reels', element: <ReelsPage /> },
+          { path: 'notifications', element: <NotificationsPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'profile/:id', element: <ProfilePage /> },
           { path: 'messages', element: <MessagesPage /> },
           { path: 'messages/:conversationId', element: <MessagesPage /> },
+          { path: 'settings', element: <SettingsPage /> },
         ],
       },
     ],
