@@ -28,8 +28,24 @@ export class CommentsService {
       select: commentSelect,
     })
 
-    // Notificar al autor del post (si no es el mismo que comenta)
+    // Notificar al autor del post
     await this.notifications.create('POST_COMMENT', authorId, post.authorId, postId)
+
+    // Notificar a cada usuario mencionado con @[Nombre]
+    const mentionRegex = /@\[([^\]]+)\]/g
+    let match
+    const notified = new Set<string>([authorId]) // solo excluir al autor del comentario
+    while ((match = mentionRegex.exec(content)) !== null) {
+      const mentionedName = match[1].trim()
+      const mentioned = await this.prisma.user.findFirst({
+        where: { name: { equals: mentionedName, mode: 'insensitive' } },
+        select: { id: true },
+      })
+      if (mentioned && !notified.has(mentioned.id)) {
+        notified.add(mentioned.id)
+        await this.notifications.create('MENTION', authorId, mentioned.id, postId, comment.id)
+      }
+    }
 
     return comment
   }

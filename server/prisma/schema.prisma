@@ -29,10 +29,13 @@ model User {
   bandMembers   BandMember[]
   reels              Reel[]
   reelLikes          ReelLike[]
+  reelComments       ReelComment[]
   postLikes          PostLike[]
   comments           Comment[]
-  sentNotifications  Notification[] @relation("NotificationFrom")
+  sentNotifications     Notification[] @relation("NotificationFrom")
   receivedNotifications Notification[] @relation("NotificationTo")
+  announcements         Announcement[]
+  tracks                Track[]
 
   @@map("users")
 }
@@ -53,13 +56,14 @@ model Post {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   content   String
   authorId  String
   postId    String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+  createdAt DateTime       @default(now())
 
   @@map("comments")
 }
@@ -154,6 +158,9 @@ enum NotificationType {
   FOLLOW
   POST_LIKE
   POST_COMMENT
+  MENTION
+  REEL_LIKE
+  REEL_COMMENT
 }
 
 model Notification {
@@ -162,36 +169,99 @@ model Notification {
   read       Boolean          @default(false)
   fromUserId String
   toUserId   String
-  postId     String?
-  from       User             @relation("NotificationFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-  to         User             @relation("NotificationTo", fields: [toUserId], references: [id], onDelete: Cascade)
-  post       Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
-  createdAt  DateTime         @default(now())
+  postId       String?
+  commentId    String?
+  reelId       String?
+  reactionType ReactionType?
+  from         User             @relation("NotificationFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  to           User             @relation("NotificationTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  post         Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment      Comment?         @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  reel         Reel?            @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
 
   @@map("notifications")
 }
 
+enum AnnouncementType {
+  BUSCO_MUSICO
+  BUSCO_BANDA
+}
+
+model Announcement {
+  id          String           @id @default(cuid())
+  title       String
+  description String
+  type        AnnouncementType
+  instruments String[]
+  genres      String[]
+  location    String?
+  authorId    String
+  author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("announcements")
+}
+
+enum TrackType {
+  AUDIO
+  VIDEO
+}
+
+model Track {
+  id        String    @id @default(cuid())
+  title     String
+  type      TrackType
+  url       String
+  publicId  String
+  duration  Int?
+  coverUrl  String?
+  mimeType  String?
+  fileSize  Int?
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@map("tracks")
+}
+
 model Reel {
-  id           String     @id @default(cuid())
+  id           String         @id @default(cuid())
   videoUrl     String
   thumbnailUrl String?
   publicId     String
   caption      String?
   authorId     String
-  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes        ReelLike[]
-  createdAt    DateTime   @default(now())
+  reelComments ReelComment[]
+  notifications Notification[]
+  createdAt    DateTime       @default(now())
 
   @@map("reels")
+}
+
+model ReelComment {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  reelId    String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reel      Reel     @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("reel_comments")
 }
 
 model ReelLike {
   userId    String
   reelId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reel      Reel     @relation(fields: [reelId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  type      ReactionType
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reel      Reel         @relation(fields: [reelId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
 
-  @@id([userId, reelId])
+  @@id([userId, reelId, type])
   @@map("reel_likes")
 }

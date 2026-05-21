@@ -55,16 +55,15 @@ export function ProfilePage() {
 
       {/* Acciones en perfil ajeno */}
       {!isOwnProfile && (
-        <div className="flex justify-center gap-3 -mt-2">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: -8 }}>
           <FollowButton userId={profile.id} isFollowing={profile.isFollowing} />
           <button
             onClick={() => openChat.mutate()}
             disabled={openChat.isPending}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold border
-              bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border-[var(--color-border)]
-              hover:border-purple-500/50 hover:text-purple-300 transition-all disabled:opacity-50"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 22px', borderRadius: 999, fontSize: 14, fontWeight: 600, border: '1px solid var(--color-border)', background: 'var(--color-surface-2)', color: 'var(--color-text-muted)', transition: 'all 0.2s' }}
+            className="hover:border-purple-500/50 hover:text-purple-300 disabled:opacity-50"
           >
-            <MessageCircle size={14} />
+            <MessageCircle size={15} />
             Mensaje
           </button>
         </div>

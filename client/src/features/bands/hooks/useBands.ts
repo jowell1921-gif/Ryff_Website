@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { bandService, type CreateBandPayload } from '../services/bandService'
 import type { Band } from '@/types/band.types'
 
@@ -47,6 +48,18 @@ export function useLeaveBand(bandId: string) {
         queryClient.invalidateQueries({ queryKey: ['band', bandId] })
       }
       queryClient.invalidateQueries({ queryKey: ['bands'] })
+    },
+  })
+}
+
+export function useDeleteBand() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  return useMutation({
+    mutationFn: (bandId: string) => bandService.deleteBand(bandId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bands'] })
+      navigate('/bands')
     },
   })
 }

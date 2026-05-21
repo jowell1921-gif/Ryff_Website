@@ -39,13 +39,22 @@ export function useMarkAllAsRead() {
   })
 }
 
-export function useTogglePostLike() {
+export function useDeleteNotification() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ postId, isLiked }: { postId: string; isLiked: boolean }) =>
-      isLiked
-        ? fetch(`/api/posts/${postId}/like`, { method: 'DELETE' }) // se maneja en postService
-        : fetch(`/api/posts/${postId}/like`, { method: 'POST' }),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),
+    mutationFn: (id: string) => notificationService.deleteOne(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+  })
+}
+
+export function useDeleteAllNotifications() {
+  const queryClient = useQueryClient()
+  const clearUnreadNotifications = useNotificationStore((s) => s.clearUnreadNotifications)
+  return useMutation({
+    mutationFn: () => notificationService.deleteAll(),
+    onSuccess: () => {
+      clearUnreadNotifications()
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
   })
 }

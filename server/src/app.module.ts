@@ -10,6 +10,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module'
 import { ReelsModule } from './reels/reels.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { CommentsModule } from './comments/comments.module'
+import { AnnouncementsModule } from './announcements/announcements.module'
+import { TracksModule } from './tracks/tracks.module'
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { CommentsModule } from './comments/comments.module'
     ReelsModule,
     NotificationsModule,
     CommentsModule,
+    AnnouncementsModule,
+    TracksModule,
   ],
 })
 export class AppModule {}

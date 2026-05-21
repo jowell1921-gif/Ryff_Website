@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { Reel } from '@/types/reel.types'
+import type { Reel, ReactionType, ReelReactionResponse, ReelComment } from '@/types/reel.types'
 
 export const reelService = {
   getReels: () =>
@@ -14,9 +14,15 @@ export const reelService = {
     }).then((r) => r.data)
   },
 
-  like: (reelId: string) =>
-    api.post<{ likesCount: number; isLiked: boolean }>(`/reels/${reelId}/like`).then((r) => r.data),
+  react: (reelId: string, type: ReactionType) =>
+    api.post<ReelReactionResponse>(`/reels/${reelId}/react`, { type }).then((r) => r.data),
 
-  unlike: (reelId: string) =>
-    api.delete<{ likesCount: number; isLiked: boolean }>(`/reels/${reelId}/like`).then((r) => r.data),
+  getComments: (reelId: string) =>
+    api.get<ReelComment[]>(`/reels/${reelId}/comments`).then((r) => r.data),
+
+  addComment: (reelId: string, content: string) =>
+    api.post<ReelComment>(`/reels/${reelId}/comments`, { content }).then((r) => r.data),
+
+  deleteComment: (reelId: string, commentId: string) =>
+    api.delete(`/reels/${reelId}/comments/${commentId}`).then((r) => r.data),
 }

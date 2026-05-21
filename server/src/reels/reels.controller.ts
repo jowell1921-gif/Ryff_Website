@@ -3,18 +3,17 @@ import {
   Get,
   Post,
   Delete,
-  Param,
   Body,
+  Param,
   UseGuards,
   UseInterceptors,
   UploadedFile,
-  HttpCode,
-  HttpStatus,
   BadRequestException,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
+import { ReactionType } from '@prisma/client'
 import { ReelsService } from './reels.service'
 import { CurrentUser } from '../auth/current-user.decorator'
 
@@ -39,14 +38,38 @@ export class ReelsController {
     return this.reelsService.upload(userId, file.buffer, caption)
   }
 
-  @Post(':id/like')
-  like(@CurrentUser('sub') userId: string, @Param('id') reelId: string) {
-    return this.reelsService.toggleLike(reelId, userId, true)
+  @Post(':id/react')
+  react(
+    @CurrentUser('sub') userId: string,
+    @Param('id') reelId: string,
+    @Body('type') type: ReactionType,
+  ) {
+    if (!Object.values(ReactionType).includes(type)) {
+      throw new BadRequestException('Tipo de reacción inválido')
+    }
+    return this.reelsService.toggleReaction(reelId, userId, type)
   }
 
-  @Delete(':id/like')
-  @HttpCode(HttpStatus.OK)
-  unlike(@CurrentUser('sub') userId: string, @Param('id') reelId: string) {
-    return this.reelsService.toggleLike(reelId, userId, false)
+  @Get(':id/comments')
+  getComments(@Param('id') reelId: string) {
+    return this.reelsService.getComments(reelId)
+  }
+
+  @Post(':id/comments')
+  addComment(
+    @CurrentUser('sub') userId: string,
+    @Param('id') reelId: string,
+    @Body('content') content: string,
+  ) {
+    if (!content?.trim()) throw new BadRequestException('El comentario no puede estar vacío')
+    return this.reelsService.addComment(reelId, userId, content.trim())
+  }
+
+  @Delete(':id/comments/:commentId')
+  deleteComment(
+    @CurrentUser('sub') userId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    return this.reelsService.deleteComment(commentId, userId)
   }
 }

@@ -57,7 +57,7 @@ export function ConversationList({ activeId }: ConversationListProps) {
   }
 
   return (
-    <div className="flex flex-col gap-0.5 p-2">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '16px 12px' }}>
       {conversations.map((conv) => {
         const other = getOtherParticipant(conv)
         if (!other) return null
@@ -68,30 +68,37 @@ export function ConversationList({ activeId }: ConversationListProps) {
           <button
             key={conv.id}
             onClick={() => navigate(`/messages/${conv.id}`)}
-            className={cn(
-              'flex items-center gap-3 px-3 py-3 rounded-xl w-full text-left transition-all',
-              isActive
-                ? 'bg-purple-600/15 text-purple-300'
-                : 'hover:bg-[var(--color-surface)] text-[var(--color-text)]',
-            )}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '12px 14px',
+              borderRadius: 16,
+              width: '100%',
+              textAlign: 'left',
+              border: isActive ? '1px solid rgba(147,51,234,0.45)' : '1px solid var(--color-border)',
+              background: isActive ? 'rgba(147,51,234,0.1)' : 'var(--color-surface)',
+              transition: 'all 0.2s',
+            }}
+            className={isActive ? '' : 'hover:border-purple-600/30 hover:bg-[var(--color-surface-2)]'}
           >
             <Avatar size="md" src={other.avatar} alt={other.name} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-1">
-                <p className={cn('text-sm font-semibold truncate', isActive && 'text-purple-300')}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                <p
+                  className="truncate"
+                  style={{ fontSize: 14, fontWeight: 600, color: isActive ? 'rgb(216,180,254)' : 'var(--color-text)', flex: 1, minWidth: 0 }}
+                >
                   {other.name}
                 </p>
                 {lastMsg && (
-                  <span className="text-[10px] text-[var(--color-text-muted)] shrink-0">
-                    {formatDistanceToNow(new Date(lastMsg.createdAt), {
-                      addSuffix: false,
-                      locale: es,
-                    })}
+                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)', flexShrink: 0 }}>
+                    {formatDistanceToNow(new Date(lastMsg.createdAt), { addSuffix: false, locale: es })}
                   </span>
                 )}
               </div>
               {lastMsg && (
-                <p className="text-xs text-[var(--color-text-muted)] truncate">
+                <p className="truncate" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
                   {lastMsg.senderId === currentUserId ? 'Tú: ' : ''}
                   {lastMsg.content}
                 </p>

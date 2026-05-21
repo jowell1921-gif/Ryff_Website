@@ -40,8 +40,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             style={{
               paddingLeft: leftIcon ? '2.25rem' : '0.75rem',
               paddingRight: isPassword ? '2.5rem' : '0.75rem',
-              paddingTop: 16,
-              paddingBottom: 16,
+              paddingTop: 18,
+              paddingBottom: 18,
             }}
             className={cn(
               'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text)] outline-none transition-all duration-200',

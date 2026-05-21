@@ -86,8 +86,8 @@ export function TagSelector({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          style={{ paddingLeft: '2rem' }}
-          className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg py-2 pr-3 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
+          style={{ paddingLeft: '2rem', paddingTop: 10, paddingBottom: 10 }}
+          className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg pr-3 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
         />
       </div>
 

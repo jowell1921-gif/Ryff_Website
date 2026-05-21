@@ -14,11 +14,14 @@ export function MessageBubble({ message, isOwn, showAvatar }: MessageBubbleProps
 
   if (isOwn) {
     return (
-      <div className="flex justify-end gap-2 group">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }} className="group">
         <span className="text-[10px] text-[var(--color-text-muted)] self-end opacity-0 group-hover:opacity-100 transition-opacity">
           {time}
         </span>
-        <div className="max-w-[70%] px-4 py-2 rounded-2xl rounded-tr-sm bg-purple-600 text-white text-sm leading-relaxed">
+        <div
+          className="rounded-2xl rounded-tr-sm bg-purple-600 text-white leading-relaxed"
+          style={{ maxWidth: '70%', padding: '10px 16px', fontSize: 14 }}
+        >
           {message.content}
         </div>
       </div>
@@ -26,15 +29,18 @@ export function MessageBubble({ message, isOwn, showAvatar }: MessageBubbleProps
   }
 
   return (
-    <div className="flex items-end gap-2 group">
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }} className="group">
       {/* Avatar del otro usuario — solo en el último mensaje consecutivo */}
-      <div className="w-7 shrink-0">
+      <div style={{ width: 28, flexShrink: 0 }}>
         {showAvatar && (
           <Avatar size="xs" src={message.sender.avatar} alt={message.sender.name} />
         )}
       </div>
 
-      <div className="max-w-[70%] px-4 py-2 rounded-2xl rounded-tl-sm bg-[var(--color-surface-2)] border border-[var(--color-border)] text-sm text-[var(--color-text)] leading-relaxed">
+      <div
+        className="rounded-2xl rounded-tl-sm bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text)] leading-relaxed"
+        style={{ maxWidth: '70%', padding: '10px 16px', fontSize: 14 }}
+      >
         {message.content}
       </div>
 

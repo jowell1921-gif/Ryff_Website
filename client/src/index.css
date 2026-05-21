@@ -28,3 +28,11 @@ body {
 ::-webkit-scrollbar-track { background: var(--color-surface); }
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-brand); }
+
+@keyframes waveBar {
+  from { height: 6px; }
+  to   { height: 24px; }
+}
+
+.reel-scroll::-webkit-scrollbar { display: none; }
+.reel-scroll { scrollbar-width: none; ms-overflow-style: none; }

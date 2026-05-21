@@ -25,4 +25,7 @@ export const bandService = {
 
   leaveBand: (bandId: string) =>
     api.delete(`/bands/${bandId}/leave`).then((r) => r.data),
+
+  deleteBand: (bandId: string) =>
+    api.delete(`/bands/${bandId}`).then((r) => r.data),
 }

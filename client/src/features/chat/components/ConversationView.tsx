@@ -101,28 +101,32 @@ export function ConversationView({ conversation }: ConversationViewProps) {
     : null
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Header — misma altura que el logo del sidebar (64px) */}
+      <div
+        className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)]"
+        style={{ display: 'flex', alignItems: 'center', gap: 14, height: 64, flexShrink: 0, paddingLeft: 20, paddingRight: 20 }}
+      >
         <button
           onClick={() => navigate('/messages')}
           className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors md:hidden"
+          style={{ marginRight: 2 }}
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={20} />
         </button>
         {other && (
           <>
-            <Avatar size="sm" src={other.avatar} alt={other.name} isOnline={true} />
-            <div>
-              <p className="text-sm font-semibold text-[var(--color-text)]">{other.name}</p>
-              <p className="text-xs text-green-400">En línea</p>
+            <Avatar size="md" src={other.avatar} alt={other.name} isOnline={true} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)' }}>{other.name}</p>
+              <p style={{ fontSize: 12, color: 'rgb(74,222,128)' }}>En línea</p>
             </div>
           </>
         )}
       </div>
 
       {/* Área de mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto" style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 16, paddingBottom: 16, paddingLeft: 20, paddingRight: 20 }}>
         {messages.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-sm text-[var(--color-text-muted)]">
@@ -166,21 +170,28 @@ export function ConversationView({ conversation }: ConversationViewProps) {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface-2)]">
-        <div className="flex items-center gap-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2 focus-within:border-purple-500 transition-colors">
+      <div
+        className="border-t border-[var(--color-border)] bg-[var(--color-surface-2)]"
+        style={{ paddingTop: 16, paddingBottom: 16, paddingLeft: 20, paddingRight: 20 }}
+      >
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl focus-within:border-purple-500 transition-colors"
+          style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 14, paddingBottom: 14, paddingLeft: 20, paddingRight: 16 }}
+        >
           <input
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Escribe un mensaje..."
-            className="flex-1 bg-transparent text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none"
+            style={{ flex: 1, fontSize: 14, background: 'transparent', color: 'var(--color-text)', outline: 'none' }}
+            className="placeholder:text-[var(--color-text-muted)]"
           />
           <button
             onClick={sendMessage}
             disabled={!input.trim()}
             className="text-purple-400 hover:text-purple-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0"
           >
-            <Send size={16} />
+            <Send size={18} />
           </button>
         </div>
       </div>

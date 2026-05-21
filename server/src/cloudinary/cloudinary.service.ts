@@ -32,4 +32,32 @@ export class CloudinaryService {
       Readable.from(buffer).pipe(stream)
     })
   }
+
+  uploadTrack(
+    buffer: Buffer,
+    type: 'AUDIO' | 'VIDEO',
+  ): Promise<{ url: string; publicId: string; coverUrl?: string; duration?: number }> {
+    return new Promise((resolve, reject) => {
+      const isVideo = type === 'VIDEO'
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'video',
+          folder: isVideo ? 'ryff/tracks/video' : 'ryff/tracks/audio',
+          ...(isVideo && {
+            eager: [{ width: 480, height: 270, crop: 'fill', format: 'jpg' }],
+          }),
+        },
+        (error, result) => {
+          if (error || !result) return reject(error)
+          resolve({
+            url: result.secure_url,
+            publicId: result.public_id,
+            coverUrl: result.eager?.[0]?.secure_url,
+            duration: result.duration ? Math.round(result.duration) : undefined,
+          })
+        },
+      )
+      Readable.from(buffer).pipe(stream)
+    })
+  }
 }

@@ -31,18 +31,20 @@ export function MessagesPage() {
     <div style={{ display: 'flex', height: '100vh' }}>
 
       {/* Panel izquierdo — lista de conversaciones */}
-      <div className={`
-        w-72 shrink-0 border-r border-[var(--color-border)] flex flex-col
-        ${conversationId ? 'hidden md:flex' : 'flex'}
-      `}>
-        <div className="px-4 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
-          <h1 className="text-base font-bold text-[var(--color-text)]">Mensajes</h1>
+      <div
+        className={`shrink-0 border-r border-[var(--color-border)] ${conversationId ? 'hidden md:flex' : 'flex'}`}
+        style={{ width: 300, display: conversationId ? undefined : 'flex', flexDirection: 'column' }}
+      >
+        {/* Header centrado — misma altura que el logo del sidebar (64px) */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 64, paddingLeft: 20, paddingRight: 20, borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
+          <h1 className="text-lg font-bold text-[var(--color-text)]">Mensajes</h1>
           <button
             onClick={() => setShowNewModal(true)}
+            style={{ position: 'absolute', right: 20 }}
             className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-purple-300 hover:bg-purple-600/10 transition-all"
             title="Nueva conversación"
           >
-            <SquarePen size={16} />
+            <SquarePen size={17} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto">

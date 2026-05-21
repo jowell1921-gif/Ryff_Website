@@ -86,7 +86,7 @@ export class PostsService {
         select: { authorId: true },
       })
       if (post) {
-        await this.notifications.create('POST_LIKE', userId, post.authorId, postId)
+        await this.notifications.create('POST_LIKE', userId, post.authorId, postId, undefined, type)
       }
     }
 

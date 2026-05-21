@@ -13,6 +13,8 @@ import { BandProfilePage } from '@/pages/BandProfilePage'
 import { ReelsPage } from '@/pages/ReelsPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { AnnouncementsPage } from '@/pages/AnnouncementsPage'
+import { MusicPage } from '@/pages/MusicPage'
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +44,8 @@ export const router = createBrowserRouter([
           { path: 'profile/:id', element: <ProfilePage /> },
           { path: 'messages', element: <MessagesPage /> },
           { path: 'messages/:conversationId', element: <MessagesPage /> },
+          { path: 'announcements', element: <AnnouncementsPage /> },
+          { path: 'music', element: <MusicPage /> },
           { path: 'settings', element: <SettingsPage /> },
         ],
       },

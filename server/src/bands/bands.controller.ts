@@ -57,4 +57,13 @@ export class BandsController {
   ) {
     return this.bandsService.leave(bandId, userId)
   }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  deleteBand(
+    @CurrentUser('sub') userId: string,
+    @Param('id') bandId: string,
+  ) {
+    return this.bandsService.deleteBand(bandId, userId)
+  }
 }

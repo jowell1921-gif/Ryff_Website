@@ -22,18 +22,19 @@ export function BandsPage() {
     <div style={{ maxWidth: 1024, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24 }}>
 
       {/* Cabecera */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-[var(--color-text)]">Bandas</h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
+        <div style={{ textAlign: 'center' }}>
+          <h1 className="text-[var(--color-text)]" style={{ fontSize: 22, fontWeight: 800 }}>Bandas</h1>
+          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 14, marginTop: 4 }}>
             Descubre grupos o crea el tuyo
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors"
+          style={{ position: 'absolute', right: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid', transition: 'all 0.2s' }}
+          className="bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:scale-105"
         >
-          <Plus size={16} />
+          <Plus size={15} />
           Crear banda
         </button>
       </div>
@@ -81,23 +82,23 @@ export function BandsPage() {
 
       {/* Resultados */}
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(268px, 1fr))', gap: 16 }}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-52 rounded-2xl bg-[var(--color-surface-2)] animate-pulse" />
+            <div key={i} className="rounded-2xl bg-[var(--color-surface-2)] animate-pulse" style={{ height: 210 }} />
           ))}
         </div>
       ) : bands.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-[var(--color-text-muted)] text-sm">
+        <div style={{ textAlign: 'center', paddingTop: 80, paddingBottom: 80 }}>
+          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 14 }}>
             {search || activeGenre ? 'No hay bandas con ese criterio.' : 'Aún no hay bandas. ¡Sé el primero!'}
           </p>
         </div>
       ) : (
         <>
-          <p className="text-xs text-[var(--color-text-muted)] mb-3">
+          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 12, marginBottom: 12 }}>
             {bands.length} {bands.length === 1 ? 'banda' : 'bandas'}
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(268px, 1fr))', gap: 16 }}>
             {bands.map((band) => (
               <BandCard key={band.id} band={band} />
             ))}

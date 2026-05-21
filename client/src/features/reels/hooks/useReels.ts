@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reelService } from '../services/reelService'
-import type { Reel } from '@/types/reel.types'
+import type { Reel, ReactionType, ReelComment } from '@/types/reel.types'
 
 export function useReels() {
   return useQuery({
@@ -18,26 +18,66 @@ export function useUploadReel() {
   })
 }
 
-export function useToggleReelLike() {
+export function useReactToReel() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ reelId, isLiked }: { reelId: string; isLiked: boolean }) =>
-      isLiked ? reelService.unlike(reelId) : reelService.like(reelId),
-    onMutate: async ({ reelId, isLiked }) => {
+    mutationFn: ({ reelId, type }: { reelId: string; type: ReactionType }) =>
+      reelService.react(reelId, type),
+    onMutate: async ({ reelId, type }) => {
       await queryClient.cancelQueries({ queryKey: ['reels'] })
       const prev = queryClient.getQueryData<Reel[]>(['reels'])
       queryClient.setQueryData<Reel[]>(['reels'], (old) =>
-        old?.map((r) =>
-          r.id === reelId
-            ? { ...r, isLiked: !isLiked, likesCount: r.likesCount + (isLiked ? -1 : 1) }
-            : r,
-        ),
+        old?.map((r) => {
+          if (r.id !== reelId) return r
+          if (type === 'APLAUSO') return { ...r, isClapped: !r.isClapped, clapCount: r.clapCount + (r.isClapped ? -1 : 1) }
+          if (type === 'FIRE')    return { ...r, isFired:   !r.isFired,   fireCount: r.fireCount + (r.isFired ? -1 : 1) }
+          return { ...r, isAsombra: !r.isAsombra, asombraCount: r.asombraCount + (r.isAsombra ? -1 : 1) }
+        }),
       )
       return { prev }
     },
-    onError: (_err, _vars, context) => {
-      if (context?.prev) queryClient.setQueryData(['reels'], context.prev)
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['reels'], ctx.prev)
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['reels'] }),
+  })
+}
+
+export function useReelComments(reelId: string | null) {
+  return useQuery({
+    queryKey: ['reel-comments', reelId],
+    queryFn: () => reelService.getComments(reelId!),
+    enabled: !!reelId,
+  })
+}
+
+export function useAddReelComment(reelId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (content: string) => reelService.addComment(reelId, content),
+    onSuccess: (newComment) => {
+      queryClient.setQueryData<ReelComment[]>(['reel-comments', reelId], (old) => [
+        ...(old ?? []),
+        newComment,
+      ])
+      queryClient.setQueryData<Reel[]>(['reels'], (old) =>
+        old?.map((r) => r.id === reelId ? { ...r, commentCount: r.commentCount + 1 } : r),
+      )
+    },
+  })
+}
+
+export function useDeleteReelComment(reelId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (commentId: string) => reelService.deleteComment(reelId, commentId),
+    onSuccess: (_data, commentId) => {
+      queryClient.setQueryData<ReelComment[]>(['reel-comments', reelId], (old) =>
+        old?.filter((c) => c.id !== commentId),
+      )
+      queryClient.setQueryData<Reel[]>(['reels'], (old) =>
+        old?.map((r) => r.id === reelId ? { ...r, commentCount: Math.max(0, r.commentCount - 1) } : r),
+      )
+    },
   })
 }

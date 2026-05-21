@@ -103,8 +103,8 @@ export function LocationAutocomplete({ value, onChange }: LocationAutocompletePr
           }}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder="Ciudad, País"
-          style={{ paddingLeft: '2rem' }}
-          className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg py-2.5 pr-8 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
+          style={{ paddingLeft: '2rem', paddingTop: 12, paddingBottom: 12 }}
+          className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg pr-8 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
         />
         {isLoading && (
           <Loader2

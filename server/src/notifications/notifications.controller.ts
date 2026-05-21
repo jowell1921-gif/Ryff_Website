@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, UseGuards } from '@nestjs/common'
+import { Controller, Get, Patch, Delete, Param, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { NotificationsService } from './notifications.service'
 import { CurrentUser } from '../auth/current-user.decorator'
@@ -21,5 +21,15 @@ export class NotificationsController {
   @Patch('read-all')
   markAllAsRead(@CurrentUser('sub') userId: string) {
     return this.notificationsService.markAllAsRead(userId)
+  }
+
+  @Delete('all')
+  deleteAll(@CurrentUser('sub') userId: string) {
+    return this.notificationsService.deleteAll(userId)
+  }
+
+  @Delete(':id')
+  deleteOne(@Param('id') id: string, @CurrentUser('sub') userId: string) {
+    return this.notificationsService.deleteOne(id, userId)
   }
 }

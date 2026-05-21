@@ -47,117 +47,108 @@ export function CreateBandModal({ onClose }: CreateBandModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
+      <div className="w-full max-w-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
-          <h2 className="text-base font-bold text-[var(--color-text)]">Crear banda</h2>
+        <div
+          className="border-b border-[var(--color-border)]"
+          style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+        >
+          <h2 className="text-[var(--color-text)]" style={{ fontSize: 16, fontWeight: 700 }}>Crear banda</h2>
           <button
             onClick={onClose}
             className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+            style={{ position: 'absolute', right: 24, top: '50%', transform: 'translateY(-50%)' }}
           >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-4 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
-
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 24, maxHeight: '75vh', overflowY: 'auto' }}
+        >
           {/* Nombre */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">
-              Nombre de la banda *
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label className="text-sm font-medium text-[var(--color-text-muted)]">
+              Nombre de la banda <span className="text-purple-400">*</span>
             </label>
             <input
               {...register('name')}
               placeholder="Los Acordes Perdidos"
-              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors"
+              style={{ paddingTop: 18, paddingBottom: 18, paddingLeft: 16, paddingRight: 16 }}
             />
             {errors.name && (
-              <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>
+              <p className="text-xs text-red-400">{errors.name.message}</p>
             )}
           </div>
 
           {/* Descripción */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">
-              Descripción
-            </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label className="text-sm font-medium text-[var(--color-text-muted)]">Descripción</label>
             <textarea
               {...register('description')}
               placeholder="Contad quiénes sois, qué tocáis, qué buscáis..."
               rows={3}
-              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors resize-none"
+              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors resize-none"
+              style={{ padding: '14px 16px' }}
             />
             {errors.description && (
-              <p className="text-xs text-red-400 mt-1">{errors.description.message}</p>
+              <p className="text-xs text-red-400">{errors.description.message}</p>
             )}
           </div>
 
           {/* Ubicación */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">
-              Ubicación
-            </label>
-            <LocationAutocomplete value={location} onChange={setLocation} />
-          </div>
+          <LocationAutocomplete value={location} onChange={setLocation} />
 
           {/* Géneros */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">
-              Géneros
-            </label>
-            <TagSelector
-              options={GENRES}
-              selected={genres}
-              onChange={setGenres}
-              placeholder="Escribe un género..."
-            />
-          </div>
+          <TagSelector
+            label="Géneros"
+            options={GENRES}
+            selected={genres}
+            onChange={setGenres}
+            placeholder="Escribe un género..."
+          />
 
           {/* Buscamos */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">
-              Buscamos (instrumentos que necesitáis)
-            </label>
-            <TagSelector
-              options={INSTRUMENTS}
-              selected={lookingFor}
-              onChange={setLookingFor}
-              placeholder="Ej: Batería, Bajo..."
-            />
-          </div>
+          <TagSelector
+            label="Buscamos (instrumentos que necesitáis)"
+            options={INSTRUMENTS}
+            selected={lookingFor}
+            onChange={setLookingFor}
+            placeholder="Ej: Batería, Bajo..."
+          />
 
-          {/* Tu instrumento en la banda */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">
-              Tu instrumento en la banda
-            </label>
-            <TagSelector
-              options={INSTRUMENTS}
-              selected={creatorInstrument ? [creatorInstrument] : []}
-              onChange={(vals) => setCreatorInstrument(vals[vals.length - 1] ?? '')}
-              placeholder="Ej: Guitarra..."
-            />
-          </div>
+          {/* Tu instrumento */}
+          <TagSelector
+            label="Tu instrumento en la banda"
+            options={INSTRUMENTS}
+            selected={creatorInstrument ? [creatorInstrument] : []}
+            onChange={(vals) => setCreatorInstrument(vals[vals.length - 1] ?? '')}
+            placeholder="Ej: Guitarra..."
+            maxItems={1}
+          />
 
           {/* Botones */}
-          <div className="flex gap-2 pt-1">
+          <div style={{ display: 'flex', gap: 12, paddingTop: 4 }}>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              className="border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              style={{ flex: 1, paddingTop: 10, paddingBottom: 10, borderRadius: 999, fontSize: 14, fontWeight: 600 }}
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={createBand.isPending}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50"
+              className="bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50"
+              style={{ flex: 1, paddingTop: 10, paddingBottom: 10, borderRadius: 999, fontSize: 14, fontWeight: 700 }}
             >
               {createBand.isPending ? 'Creando...' : 'Crear banda'}
             </button>
           </div>
-
         </form>
       </div>
     </div>

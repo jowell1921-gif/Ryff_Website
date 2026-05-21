@@ -20,7 +20,7 @@ export function BandCard({ band }: BandCardProps) {
           <img src={band.banner} alt="" className="w-full h-full object-cover" />
         )}
         {/* Avatar sobre el banner */}
-        <div className="absolute -bottom-5 left-4">
+        <div style={{ position: 'absolute', bottom: -20, left: 16 }}>
           <div className="w-12 h-12 rounded-xl border-2 border-[var(--color-surface-2)] bg-purple-700 flex items-center justify-center overflow-hidden">
             {band.avatar ? (
               <img src={band.avatar} alt={band.name} className="w-full h-full object-cover" />
@@ -33,7 +33,7 @@ export function BandCard({ band }: BandCardProps) {
         </div>
       </div>
 
-      <div style={{ paddingTop: 32, paddingLeft: 20, paddingRight: 20, paddingBottom: 20 }}>
+      <div style={{ paddingTop: 32, paddingLeft: 24, paddingRight: 24, paddingBottom: 20 }}>
         {/* Nombre y ubicación */}
         <h3 className="text-sm font-bold text-[var(--color-text)] group-hover:text-purple-300 transition-colors truncate">
           {band.name}

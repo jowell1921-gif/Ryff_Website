@@ -16,9 +16,6 @@ export function BottomNav() {
   const totalUnread          = useNotificationStore((s) => s.totalUnread())
   const unreadNotifications  = useNotificationStore((s) => s.unreadNotifications)
 
-  // En Reels (pantalla completa) el bottom nav interfiere con la UI de video
-  if (pathname.startsWith('/reels')) return null
-
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-surface-2)] border-t border-[var(--color-border)] safe-area-inset-bottom">
       <div className="flex items-center justify-around h-14 px-2">

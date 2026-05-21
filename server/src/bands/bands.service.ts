@@ -82,6 +82,16 @@ export class BandsService {
     })
   }
 
+  async deleteBand(bandId: string, userId: string) {
+    const member = await this.prisma.bandMember.findUnique({
+      where: { userId_bandId: { userId, bandId } },
+    })
+    if (!member || member.role !== 'ADMIN') throw new ForbiddenException('Solo el administrador puede eliminar la banda')
+
+    await this.prisma.band.delete({ where: { id: bandId } })
+    return { success: true }
+  }
+
   async leave(bandId: string, userId: string) {
     const member = await this.prisma.bandMember.findUnique({
       where: { userId_bandId: { userId, bandId } },
