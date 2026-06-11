@@ -15,6 +15,7 @@ const publicUserSelect = {
   location: true,
   instruments: true,
   mainInstrument: true,
+  role: true,
   genres: true,
   createdAt: true,
   _count: {
@@ -79,7 +80,7 @@ export class UsersService {
         mediaUrl: true,
         createdAt: true,
         author: {
-          select: { id: true, name: true, avatar: true, instruments: true },
+          select: { id: true, name: true, avatar: true, instruments: true, role: true },
         },
       },
       orderBy: { createdAt: 'desc' },

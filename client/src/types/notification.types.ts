@@ -1,4 +1,4 @@
-export type NotificationType = 'FOLLOW' | 'POST_LIKE' | 'POST_COMMENT' | 'MENTION' | 'REEL_LIKE' | 'REEL_COMMENT'
+export type NotificationType = 'FOLLOW' | 'POST_LIKE' | 'POST_COMMENT' | 'MENTION' | 'REEL_LIKE' | 'REEL_COMMENT' | 'POST_REPOST'
 export type ReactionType = 'APLAUSO' | 'FIRE' | 'ASOMBRA'
 
 export interface AppNotification {

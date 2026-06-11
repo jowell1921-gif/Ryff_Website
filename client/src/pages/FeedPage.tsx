@@ -1,35 +1,39 @@
 import { useMemo } from 'react'
 import { CreatePost } from '@/features/feed/components/CreatePost'
 import { PostCard } from '@/features/feed/components/PostCard'
-import { useFeed } from '@/features/feed/hooks/useFeed'
+import { RepostCard } from '@/features/feed/components/RepostCard'
+import { useFeed, useRepostsFeed } from '@/features/feed/hooks/useFeed'
 import { useAnnouncements } from '@/features/announcements/hooks/useAnnouncements'
 import { AnnouncementFeedCard } from '@/features/announcements/components/AnnouncementFeedCard'
 import { useAllTracks } from '@/features/tracks/hooks/useTracks'
 import { TrackFeedCard } from '@/features/tracks/components/TrackFeedCard'
-import type { Post } from '@/types/post.types'
+import type { Post, RepostItem } from '@/types/post.types'
 import type { Announcement } from '@/types/announcement.types'
 import type { Track } from '@/types/track.types'
 
 type FeedItem =
   | { kind: 'post'; data: Post; createdAt: string }
+  | { kind: 'repost'; data: RepostItem; createdAt: string }
   | { kind: 'announcement'; data: Announcement; createdAt: string }
   | { kind: 'track'; data: Track; createdAt: string }
 
 export function FeedPage() {
   const { data: feedData, isLoading: loadingPosts, isError } = useFeed()
+  const { data: reposts = [], isLoading: loadingReposts } = useRepostsFeed()
   const { data: announcements = [], isLoading: loadingAnn } = useAnnouncements()
   const { data: tracks = [], isLoading: loadingTracks } = useAllTracks()
 
-  const isLoading = loadingPosts || loadingAnn || loadingTracks
+  const isLoading = loadingPosts || loadingReposts || loadingAnn || loadingTracks
 
   const items = useMemo<FeedItem[]>(() => {
     const posts: FeedItem[] = (feedData?.posts ?? []).map((p) => ({ kind: 'post', data: p, createdAt: p.createdAt }))
+    const rps: FeedItem[] = reposts.map((r) => ({ kind: 'repost', data: r, createdAt: r.createdAt }))
     const ann: FeedItem[] = announcements.map((a) => ({ kind: 'announcement', data: a, createdAt: a.createdAt }))
     const trks: FeedItem[] = tracks.map((t) => ({ kind: 'track', data: t, createdAt: t.createdAt }))
-    return [...posts, ...ann, ...trks].sort(
+    return [...posts, ...rps, ...ann, ...trks].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-  }, [feedData, announcements, tracks])
+  }, [feedData, reposts, announcements, tracks])
 
   return (
     <div style={{ maxWidth: 672, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingTop: 32, paddingBottom: 32, display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -71,6 +75,7 @@ export function FeedPage() {
 
       {items.map((item) => {
         if (item.kind === 'post') return <PostCard key={`post-${item.data.id}`} post={item.data} />
+        if (item.kind === 'repost') return <RepostCard key={`repost-${item.data.id}`} repost={item.data} />
         if (item.kind === 'announcement') return <AnnouncementFeedCard key={`ann-${item.data.id}`} announcement={item.data} />
         return <TrackFeedCard key={`track-${item.data.id}`} track={item.data} />
       })}

@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Compass, Users, MessageCircle, User, Settings, Music2, LogOut, Clapperboard, Bell, Megaphone, LibraryBig } from 'lucide-react'
+import { Home, Compass, Users, MessageCircle, User, Settings, LogOut, Clapperboard, Bell, Megaphone, LibraryBig, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/Avatar'
 import { useAuthStore } from '@/stores/authStore'
@@ -18,20 +19,26 @@ const navItems = [
   { to: '/profile', icon: User, label: 'Mi perfil' },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  isDrawer?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ isDrawer = false, onClose }: SidebarProps) {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
   const totalUnread = useNotificationStore((s) => s.totalUnread())
   const unreadNotifications = useNotificationStore((s) => s.unreadNotifications)
 
-  const [expanded, setExpanded] = useState(() => window.innerWidth >= 1280)
+  const [expanded, setExpanded] = useState(() => isDrawer || window.innerWidth >= 1280)
 
   useEffect(() => {
+    if (isDrawer) return
     const handler = () => setExpanded(window.innerWidth >= 1280)
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
-  }, [])
+  }, [isDrawer])
 
   const handleLogout = () => {
     logout()
@@ -40,13 +47,17 @@ export function Sidebar() {
 
   return (
     <aside
-      className="hidden md:flex shrink-0 h-screen sticky top-0 flex-col bg-[var(--color-surface-2)] border-r border-[var(--color-border)]"
+      className={cn(
+        isDrawer ? 'flex' : 'hidden md:flex',
+        'shrink-0 h-screen sticky top-0 flex-col bg-[var(--color-surface-2)] border-r border-[var(--color-border)]'
+      )}
       style={{ width: expanded ? 256 : 72, overflow: 'hidden' }}
     >
       {/* Logo */}
       <div
         className="h-16 border-b border-[var(--color-border)]"
         style={{
+          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           justifyContent: expanded ? 'flex-start' : 'center',
@@ -54,12 +65,32 @@ export function Sidebar() {
           paddingRight: expanded ? 20 : 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center shrink-0">
-            <Music2 size={16} className="text-white" />
-          </div>
-          {expanded && (
-            <span className="text-lg font-bold text-[var(--color-text)] tracking-tight">RYFF</span>
+        {isDrawer && (
+          <button
+            onClick={onClose}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors rounded-lg"
+            style={{ padding: 6 }}
+          >
+            <X size={18} />
+          </button>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {expanded ? (
+            <motion.img
+              src="/logo-sin.png"
+              alt="RYFF"
+              animate={{ y: [0, -6, 0]}}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ height: 120, objectFit: 'contain', marginBottom: -16  }}
+            />
+          ) : (
+            <motion.img
+              src="/logo-sin.png"
+              alt="RYFF"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ width: 32, height: 32, objectFit: 'cover', objectPosition: 'left center' }}
+            />
           )}
         </div>
       </div>
@@ -82,6 +113,7 @@ export function Sidebar() {
           <NavLink
             key={to}
             to={to}
+            onClick={() => onClose?.()}
             className={({ isActive }) =>
               cn(
                 'flex items-center rounded-xl text-sm font-medium transition-colors duration-200',

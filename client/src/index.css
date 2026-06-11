@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --color-brand: #a855f7;
+  --color-brand: #9333ea;
   --color-brand-dark: #7c3aed;
   --color-surface: #0f0f13;
   --color-surface-2: #1a1a24;
   --color-surface-3: #252533;
   --color-border: #2e2e40;
   --color-text: #f1f0f5;
-  --color-text-muted: #8b8a9b;
+  --color-text-muted:  #8b8a9b;
 }
 
 * {
@@ -25,8 +25,8 @@ body {
 }
 
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--color-surface); }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--color-surface-3); }
+::-webkit-scrollbar-thumb { background: #c4c3d8; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-brand); }
 
 @keyframes waveBar {
@@ -36,3 +36,10 @@ body {
 
 .reel-scroll::-webkit-scrollbar { display: none; }
 .reel-scroll { scrollbar-width: none; ms-overflow-style: none; }
+
+/* Offset para el top bar fijo en móvil */
+@media (max-width: 767px) {
+  .mobile-top-offset {
+    padding-top: 58px;
+  }
+}

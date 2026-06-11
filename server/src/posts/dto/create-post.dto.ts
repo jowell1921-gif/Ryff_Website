@@ -9,4 +9,12 @@ export class CreatePostDto {
   @IsOptional()
   @IsUrl()
   mediaUrl?: string
+
+  @IsOptional()
+  @IsString()
+  mediaName?: string
+
+  @IsOptional()
+  @IsString()
+  mediaType?: string
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuthStore } from '@/stores/authStore'
 import { authService } from '@/features/auth/services/authService'
+import { GoogleButton } from '@/features/auth/components/GoogleButton'
 
 const loginSchema = z.object({
   email: z.string().email('Introduce un email válido'),
@@ -90,6 +91,14 @@ export function LoginPage() {
           {isSubmitting ? 'Entrando...' : 'Entrar'}
         </Button>
       </form>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0' }}>
+        <div className="flex-1 border-t border-[var(--color-border)]" />
+        <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>o</span>
+        <div className="flex-1 border-t border-[var(--color-border)]" />
+      </div>
+
+      <GoogleButton />
 
       <p className="text-center text-sm text-[var(--color-text-muted)] mt-8">
         ¿No tienes cuenta?{' '}

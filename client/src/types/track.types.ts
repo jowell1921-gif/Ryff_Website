@@ -15,4 +15,18 @@ export interface Track {
     name: string
     avatar: string | null
   }
+  clapCount: number
+  fireCount: number
+  asombraCount: number
+  isClapped: boolean
+  isFired: boolean
+  isAsombra: boolean
+  commentsCount: number
+}
+
+export interface TrackComment {
+  id: string
+  content: string
+  createdAt: string
+  author: { id: string; name: string; avatar: string | null }
 }

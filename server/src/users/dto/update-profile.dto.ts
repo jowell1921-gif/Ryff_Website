@@ -27,6 +27,11 @@ export class UpdateProfileDto {
   mainInstrument?: string
 
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  role?: string
+
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   genres?: string[]

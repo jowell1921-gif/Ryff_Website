@@ -31,9 +31,27 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } })
 
     if (!user) throw new UnauthorizedException('Credenciales incorrectas')
+    if (!user.password) throw new UnauthorizedException('Esta cuenta usa Google. Inicia sesión con Google.')
 
     const passwordValid = await bcrypt.compare(dto.password, user.password)
     if (!passwordValid) throw new UnauthorizedException('Credenciales incorrectas')
+
+    return this.buildAuthResponse(user)
+  }
+
+  async loginWithGoogle(profile: { email: string; name: string; avatar?: string }) {
+    let user = await this.prisma.user.findUnique({ where: { email: profile.email } })
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email: profile.email,
+          name: profile.name,
+          avatar: profile.avatar ?? null,
+          password: null,
+        },
+      })
+    }
 
     return this.buildAuthResponse(user)
   }

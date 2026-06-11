@@ -1,13 +1,40 @@
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Users, BarChart2, EyeOff, Star, ShieldCheck, Guitar, Mic2, Music2, Headphones, Drum } from 'lucide-react'
+import { Sparkles, Users, BarChart2, EyeOff, Star, ShieldCheck, Guitar, Mic2, Music2, Headphones, Drum, X } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui/Avatar'
 import { Pill } from '@/components/ui/Pill'
 import { useUserSuggestions } from '@/features/profile/hooks/useProfile'
 
-export function RightSidebar() {
+interface RightSidebarProps {
+  isDrawer?: boolean
+  onClose?: () => void
+}
+
+export function RightSidebar({ isDrawer = false, onClose }: RightSidebarProps) {
   return (
-    <aside className="hidden xl:flex shrink-0 h-screen sticky top-0 flex-col bg-[var(--color-surface-2)] border-l border-[var(--color-border)] overflow-y-auto scrollbar-hide" style={{ width: 272 }}>
+    <aside
+      className={cn(
+        isDrawer ? 'flex' : 'hidden xl:flex',
+        'shrink-0 h-screen sticky top-0 flex-col bg-[var(--color-surface-2)] border-l border-[var(--color-border)] overflow-y-auto scrollbar-hide'
+      )}
+      style={{ width: 272 }}
+    >
+      {isDrawer && (
+        <div
+          className="border-b border-[var(--color-border)]"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}
+        >
+          <span className="text-sm font-semibold text-[var(--color-text)]">Descubrir</span>
+          <button
+            onClick={onClose}
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors rounded-lg"
+            style={{ padding: 6 }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingTop: 32, paddingBottom: 32, paddingLeft: 20, paddingRight: 20 }}>
         <DiscoverCard />
         <ProCard />
@@ -110,6 +137,7 @@ const PRO_FEATURES = [
 ]
 
 function ProCard() {
+  const navigate = useNavigate()
   return (
     <div className="relative overflow-hidden bg-[var(--color-surface)] border border-purple-500/30 rounded-xl flex flex-col items-center gap-4" style={{ paddingTop: 34, paddingBottom: 34, paddingLeft: 24, paddingRight: 24 }}>
       <div className="absolute inset-0 bg-gradient-to-br from-purple-600/8 via-transparent to-indigo-600/8 pointer-events-none" />
@@ -161,8 +189,11 @@ function ProCard() {
       </ul>
 
       {/* Botón — centrado, no pegado a los bordes */}
-      <button style={{ borderRadius: 9999, paddingLeft: 18, paddingRight: 18, paddingTop: 3, paddingBottom: 3, background: 'linear-gradient(to right, #9333ea, #4f46e5)', color: 'white', fontSize: 12, fontWeight: 700 }}>
-        Suscribirse · $4.99/mes
+      <button
+        onClick={() => navigate('/coming-soon')}
+        style={{ borderRadius: 9999, paddingLeft: 18, paddingRight: 18, paddingTop: 3, paddingBottom: 3, background: 'linear-gradient(to right, #9333ea, #4f46e5)', color: 'white', fontSize: 12, fontWeight: 700 }}
+      >
+        Suscribirse · €4.99/mes
       </button>
     </div>
   )

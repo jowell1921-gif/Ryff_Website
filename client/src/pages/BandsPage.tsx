@@ -22,7 +22,7 @@ export function BandsPage() {
     <div style={{ maxWidth: 1024, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 24 }}>
 
       {/* Cabecera */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
+      <div className="relative flex flex-col items-center gap-4 md:flex-row md:justify-center md:gap-0" style={{ marginBottom: 28 }}>
         <div style={{ textAlign: 'center' }}>
           <h1 className="text-[var(--color-text)]" style={{ fontSize: 22, fontWeight: 800 }}>Bandas</h1>
           <p className="text-[var(--color-text-muted)]" style={{ fontSize: 14, marginTop: 4 }}>
@@ -31,8 +31,8 @@ export function BandsPage() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          style={{ position: 'absolute', right: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid', transition: 'all 0.2s' }}
-          className="bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:scale-105"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid', transition: 'all 0.2s' }}
+          className="md:absolute md:right-0 bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:scale-105"
         >
           <Plus size={15} />
           Crear banda

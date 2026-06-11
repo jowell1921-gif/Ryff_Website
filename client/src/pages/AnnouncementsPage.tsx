@@ -1,8 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
 import { MapPin, Music2, Users, X, Plus, Search, Trash2 } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { useAnnouncements, useCreateAnnouncement, useDeleteAnnouncement } from '@/features/announcements/hooks/useAnnouncements'
 import { useAuthStore } from '@/stores/authStore'
+import { chatService } from '@/features/chat/services/chatService'
+import { socketClient } from '@/features/chat/socket/socketClient'
 import type { Announcement, AnnouncementType } from '@/types/announcement.types'
 import { INSTRUMENTS, GENRES } from '@/features/profile/constants/musicData'
 
@@ -101,8 +105,13 @@ export function AnnouncementsPage() {
         <CreateAnnouncementModal
           onClose={() => setShowForm(false)}
           onSubmit={async (data) => {
-            await createAnnouncement.mutateAsync(data)
-            setShowForm(false)
+            try {
+              await createAnnouncement.mutateAsync(data)
+              setShowForm(false)
+            } catch (err: any) {
+              const msg = err?.response?.data?.message
+              throw new Error(Array.isArray(msg) ? msg.join(', ') : (msg ?? 'Error al publicar el anuncio'))
+            }
           }}
           isPending={createAnnouncement.isPending}
         />
@@ -122,7 +131,21 @@ function AnnouncementCard({
   onDelete: () => void
   deleting: boolean
 }) {
+  const navigate = useNavigate()
   const isMusico = announcement.type === 'BUSCO_MUSICO'
+  const [showRequest, setShowRequest] = useState(false)
+  const [requestText, setRequestText] = useState('')
+
+  const sendRequest = useMutation({
+    mutationFn: async () => {
+      const conv = await chatService.getOrCreateConversation(announcement.author.id)
+      socketClient.get()?.emit('sendMessage', { conversationId: conv.id, content: requestText.trim() })
+      return conv
+    },
+    onSuccess: (conv) => {
+      navigate(`/messages/${conv.id}`)
+    },
+  })
 
   return (
     <div
@@ -161,41 +184,104 @@ function AnnouncementCard({
         )}
       </div>
 
-      {/* Contenido */}
+      {/* Título + descripción */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <h3 className="text-[var(--color-text)]" style={{ fontSize: 15, fontWeight: 700 }}>{announcement.title}</h3>
         <p className="text-[var(--color-text-muted)]" style={{ fontSize: 14, lineHeight: 1.6 }}>{announcement.description}</p>
       </div>
 
-      {/* Pills */}
-      {(announcement.instruments.length > 0 || announcement.genres.length > 0) && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {announcement.instruments.map((inst) => (
-            <span
-              key={inst}
-              className="rounded-full bg-purple-600 border border-purple-500 font-semibold"
-              style={{ padding: '4px 12px', fontSize: 11, color: 'white' }}
-            >
-              {inst}
-            </span>
-          ))}
-          {announcement.genres.map((g) => (
-            <span
-              key={g}
-              className="rounded-full border border-purple-500/30 bg-purple-500/10 font-semibold"
-              style={{ padding: '4px 12px', fontSize: 11, color: 'white' }}
-            >
-              {g}
-            </span>
-          ))}
+      {/* Instrumento buscado */}
+      {announcement.instruments.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12, fontWeight: 600, flexShrink: 0, paddingTop: 3 }}>
+            Instrumento buscado:
+          </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {announcement.instruments.map((inst) => (
+              <span
+                key={inst}
+                className="rounded-full bg-purple-600 border border-purple-500 font-semibold"
+                style={{ padding: '4px 12px', fontSize: 11, color: 'white' }}
+              >
+                {inst}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
-      {announcement.location && (
-        <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }} className="text-[var(--color-text-muted)]">
-          <MapPin size={12} />
-          {announcement.location}
-        </p>
+      {/* Para tocar */}
+      {announcement.genres.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12, fontWeight: 600, flexShrink: 0, paddingTop: 3 }}>
+            Para tocar:
+          </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {announcement.genres.map((g) => (
+              <span
+                key={g}
+                className="rounded-full border border-purple-500/30 bg-purple-500/10 font-semibold"
+                style={{ padding: '4px 12px', fontSize: 11, color: 'white' }}
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ubicación + Solicitar anuncio */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {announcement.location ? (
+          <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12 }} className="text-[var(--color-text-muted)]">
+            <MapPin size={12} />
+            {announcement.location}
+          </p>
+        ) : <span />}
+        {!isOwn && (
+          <button
+            onClick={() => setShowRequest((v) => !v)}
+            className="text-purple-400 hover:text-purple-300 transition-colors"
+            style={{ fontSize: 13, fontWeight: 600 }}
+          >
+            Solicitar anuncio
+          </button>
+        )}
+      </div>
+
+      {/* Card solicitud */}
+      {showRequest && (
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)]"
+          style={{ borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}
+        >
+          <input
+            value={requestText}
+            onChange={(e) => setRequestText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (requestText.trim() && !sendRequest.isPending) sendRequest.mutate() } }}
+            placeholder="Preséntate y comenta tu interés en el anuncio..."
+            autoFocus
+            className="bg-transparent text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+            style={{ fontSize: 14, outline: 'none', border: 'none', width: '100%' }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+            <button
+              onClick={() => { setShowRequest(false); setRequestText('') }}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              style={{ fontSize: 13, fontWeight: 600 }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => sendRequest.mutate()}
+              disabled={!requestText.trim() || sendRequest.isPending}
+              className="text-purple-400 hover:text-purple-300 transition-colors disabled:opacity-40"
+              style={{ fontSize: 13, fontWeight: 600 }}
+            >
+              {sendRequest.isPending ? 'Enviando...' : 'Enviar'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
@@ -225,6 +311,7 @@ function CreateAnnouncementModal({ onClose, onSubmit, isPending }: CreateAnnounc
   const [genreSearch, setGenreSearch] = useState('')
   const [showInstDropdown, setShowInstDropdown] = useState(false)
   const [showGenreDropdown, setShowGenreDropdown] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const filteredInstruments = INSTRUMENTS.filter(
     (i) => i.toLowerCase().includes(instSearch.toLowerCase()) && !selectedInstruments.includes(i)
@@ -241,16 +328,24 @@ function CreateAnnouncementModal({ onClose, onSubmit, isPending }: CreateAnnounc
     if (arr.length < max) setArr([...arr, item])
   }
 
+  const titleOk = title.trim().length >= 5
+  const descOk = description.trim().length >= 10
+
   const handleSubmit = async () => {
-    if (!title.trim() || !description.trim()) return
-    await onSubmit({
-      type,
-      title: title.trim(),
-      description: description.trim(),
-      instruments: selectedInstruments,
-      genres: selectedGenres,
-      location: location.trim() || undefined,
-    })
+    if (!titleOk || !descOk) return
+    setError(null)
+    try {
+      await onSubmit({
+        type,
+        title: title.trim(),
+        description: description.trim(),
+        instruments: selectedInstruments,
+        genres: selectedGenres,
+        location: location.trim() || undefined,
+      })
+    } catch (err: any) {
+      setError(err?.message ?? 'Error al publicar el anuncio')
+    }
   }
 
   return (
@@ -443,23 +538,28 @@ function CreateAnnouncementModal({ onClose, onSubmit, isPending }: CreateAnnounc
         {/* Footer */}
         <div
           className="border-t border-[var(--color-border)]"
-          style={{ padding: '16px 24px', display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0 }}
+          style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}
         >
-          <button
-            onClick={onClose}
-            className="border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
-            style={{ padding: '9px 20px', borderRadius: 999, fontSize: 14, fontWeight: 600 }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending || !title.trim() || !description.trim()}
-            className="bg-purple-600 hover:bg-purple-700 transition-colors disabled:opacity-50"
-            style={{ padding: '9px 22px', borderRadius: 999, fontSize: 14, fontWeight: 700, color: 'white' }}
-          >
-            {isPending ? 'Publicando...' : 'Publicar'}
-          </button>
+          {error && (
+            <p className="text-red-400" style={{ fontSize: 13, textAlign: 'center' }}>{error}</p>
+          )}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button
+              onClick={onClose}
+              className="border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              style={{ padding: '9px 20px', borderRadius: 999, fontSize: 14, fontWeight: 600 }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isPending || !titleOk || !descOk}
+              className="bg-purple-600 hover:bg-purple-700 transition-colors disabled:opacity-50"
+              style={{ padding: '9px 22px', borderRadius: 999, fontSize: 14, fontWeight: 700, color: 'white' }}
+            >
+              {isPending ? 'Publicando...' : 'Publicar'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ const REACTIONS: { type: ReactionType; emoji: string; activeColor: string }[] = 
   { type: 'ASOMBRA', emoji: '😮', activeColor: '#facc15' },
 ]
 
-const MAX_COMMENT = 300
+const MAX_COMMENT = 150
 const REEL_HEIGHT = '92vh'
 // Altura de BottomNav en mobile (h-14 = 56px) + margen
 const MOBILE_NAV_H = 56
@@ -164,7 +164,7 @@ function ActionButtons({
   setIsMuted: (fn: (m: boolean) => boolean) => void
   btnSize: number
 }) {
-  const iconSize = btnSize === 50 ? 20 : 18
+  const iconSize = btnSize === 46 ? 16 : 14
 
   return (
     <>
@@ -173,7 +173,7 @@ function ActionButtons({
         const active = type === 'APLAUSO' ? activeReel.isClapped : type === 'FIRE' ? activeReel.isFired : activeReel.isAsombra
         return (
           <button key={type} onClick={() => reactToReel.mutate({ reelId: activeReel.id, type })} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: btnSize, height: btnSize, borderRadius: '50%', background: active ? `${activeColor}30` : 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: `1px solid ${active ? activeColor + '60' : 'rgba(255,255,255,0.1)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, transition: 'all 0.2s', transform: active ? 'scale(1.1)' : 'scale(1)' }}>
+            <div style={{ width: btnSize, height: btnSize, borderRadius: '50%', background: active ? `${activeColor}30` : 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: `1px solid ${active ? activeColor + '60' : 'rgba(255,255,255,0.1)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, transition: 'all 0.2s', transform: active ? 'scale(1.1)' : 'scale(1)' }}>
               {emoji}
             </div>
             <span style={{ fontSize: 11, fontWeight: 600, color: active ? activeColor : 'rgba(255,255,255,0.65)' }}>{formatCount(count)}</span>
@@ -250,6 +250,14 @@ export function ReelsPage() {
       <>
         {/* Video full-screen */}
         <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 10 }}>
+          {/* Botón + arriba a la derecha — dentro del contenedor del reel */}
+          <button
+            onClick={() => setShowUpload(true)}
+            style={{ position: 'absolute', top: 102, right: 16, zIndex: 20, width: 40, height: 40, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(124,58,237,0.5)' }}
+          >
+            <Plus size={18} color="white" />
+          </button>
+
           <div
             className="reel-scroll"
             style={{ width: '100%', height: '100%', overflowY: reels.length === 0 ? 'hidden' : 'scroll', scrollSnapType: 'y mandatory', scrollBehavior: 'smooth' }}
@@ -267,14 +275,6 @@ export function ReelsPage() {
           </div>
         </div>
 
-        {/* Botón + arriba a la derecha */}
-        <button
-          onClick={() => setShowUpload(true)}
-          style={{ position: 'fixed', top: 16, right: 16, zIndex: 40, width: 40, height: 40, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(124,58,237,0.5)' }}
-        >
-          <Plus size={18} color="white" />
-        </button>
-
         {/* Botones de acción — derecha, encima del BottomNav */}
         {activeReel && (
           <div style={{ position: 'fixed', right: 12, bottom: MOBILE_NAV_H + 20, zIndex: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
@@ -286,7 +286,7 @@ export function ReelsPage() {
               onShare={handleShare}
               isMuted={isMuted}
               setIsMuted={setIsMuted}
-              btnSize={44}
+              btnSize={40}
             />
           </div>
         )}
@@ -345,7 +345,7 @@ export function ReelsPage() {
               onShare={handleShare}
               isMuted={isMuted}
               setIsMuted={setIsMuted}
-              btnSize={50}
+              btnSize={46}
             />
           </div>
         )}

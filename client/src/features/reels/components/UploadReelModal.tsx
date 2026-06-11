@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { X, Upload, Film } from 'lucide-react'
+import { X, Film, Upload } from 'lucide-react'
 import { useUploadReel } from '../hooks/useReels'
 
 interface UploadReelModalProps {
@@ -12,6 +12,9 @@ export function UploadReelModal({ onClose }: UploadReelModalProps) {
   const [caption, setCaption] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const uploadReel = useUploadReel()
+
+  const MAX_CAPTION = 150
+  const remaining = MAX_CAPTION - caption.length
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0]
@@ -27,37 +30,78 @@ export function UploadReelModal({ onClose }: UploadReelModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
-
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
+        background: 'rgba(0,0,0,0.75)',
+        backdropFilter: 'blur(6px)',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="bg-[var(--color-surface-2)] border border-[var(--color-border)]"
+        style={{ width: '100%', maxWidth: 400, borderRadius: 20, overflow: 'hidden' }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
-          <h2 className="text-base font-bold text-[var(--color-text)]">Subir reel</h2>
-          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-            <X size={18} />
+        <div
+          className="border-b border-[var(--color-border)]"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}
+        >
+          <h2 className="text-[var(--color-text)]" style={{ fontSize: 16, fontWeight: 700 }}>
+            Subir reel
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+            style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <X size={16} />
           </button>
         </div>
 
-        <div className="px-5 py-4 flex flex-col gap-4">
+        {/* Body */}
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Zona de selección de vídeo */}
           {!preview ? (
             <button
               onClick={() => inputRef.current?.click()}
-              className="h-48 rounded-xl border-2 border-dashed border-[var(--color-border)] hover:border-purple-500/50 transition-colors flex flex-col items-center justify-center gap-3 text-[var(--color-text-muted)] hover:text-purple-300"
+              className="border-2 border-dashed border-[var(--color-border)] hover:border-purple-500/50 text-[var(--color-text-muted)] hover:text-purple-300 transition-colors"
+              style={{
+                height: 180, borderRadius: 14,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10,
+              }}
             >
               <Film size={32} />
-              <span className="text-sm font-medium">Seleccionar vídeo</span>
-              <span className="text-xs opacity-60">MP4, MOV, WebM</span>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Seleccionar vídeo</span>
+              <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12, opacity: 0.6 }}>
+                MP4, MOV, WebM
+              </span>
             </button>
           ) : (
-            <div className="relative rounded-xl overflow-hidden h-48 bg-black">
-              <video src={preview} className="w-full h-full object-contain" controls />
+            <div
+              className="bg-black"
+              style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', height: 180 }}
+            >
+              <video
+                src={preview}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                controls
+              />
               <button
                 onClick={() => { setFile(null); setPreview(null) }}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80"
+                style={{
+                  position: 'absolute', top: 8, right: 8,
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: 'rgba(0,0,0,0.65)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white',
+                }}
+                className="hover:bg-black/90 transition-colors"
               >
-                <X size={14} />
+                <X size={13} />
               </button>
             </div>
           )}
@@ -67,35 +111,58 @@ export function UploadReelModal({ onClose }: UploadReelModalProps) {
             type="file"
             accept="video/mp4,video/mov,video/webm,video/quicktime"
             onChange={handleFileChange}
-            className="hidden"
+            style={{ display: 'none' }}
           />
 
           {/* Caption */}
-          <textarea
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder="Añade un caption..."
-            rows={2}
-            maxLength={200}
-            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-purple-500 transition-colors resize-none"
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label className="text-[var(--color-text-muted)]" style={{ fontSize: 12, fontWeight: 600 }}>
+              Caption
+            </label>
+            <div
+              className="border border-[var(--color-border)] bg-[var(--color-surface)]"
+              style={{ borderRadius: 12, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}
+            >
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value.slice(0, MAX_CAPTION))}
+                placeholder="Añade un caption..."
+                rows={2}
+                className="bg-transparent text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+                style={{ border: 'none', outline: 'none', fontSize: 13, lineHeight: 1.5, resize: 'none', width: '100%', fontFamily: 'inherit' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <span
+                  className={remaining < 20 ? 'text-orange-400' : 'text-[var(--color-text-muted)]'}
+                  style={{ fontSize: 11 }}
+                >
+                  {remaining}
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* Botones */}
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              className="border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text-muted)] transition-colors"
+              style={{ flex: 1, padding: '10px 0', borderRadius: 12, fontSize: 14, fontWeight: 600 }}
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
               disabled={!file || uploadReel.isPending}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-50"
+              style={{ flex: 1, padding: '10px 0', borderRadius: 12, fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               {uploadReel.isPending ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div
+                    className="border-2 border-white/30 border-t-white rounded-full animate-spin"
+                    style={{ width: 15, height: 15 }}
+                  />
                   Subiendo...
                 </>
               ) : (
@@ -107,11 +174,13 @@ export function UploadReelModal({ onClose }: UploadReelModalProps) {
             </button>
           </div>
 
+          {/* Mensaje de progreso */}
           {uploadReel.isPending && (
-            <p className="text-xs text-center text-[var(--color-text-muted)]">
-              Subiendo a Cloudinary, puede tardar unos segundos...
+            <p className="text-[var(--color-text-muted)]" style={{ fontSize: 12, textAlign: 'center' }}>
+              Subiendo a Cloudinary, puede tardar unos segundos…
             </p>
           )}
+
         </div>
       </div>
     </div>

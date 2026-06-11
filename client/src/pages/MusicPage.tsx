@@ -1,13 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { formatDistanceToNow } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Music2, Video, Upload, Play, Pause, Trash2, X,
-  CloudUpload, Check, AlertCircle, Clock, HardDrive,
+  Music2, Video, Upload, X,
+  CloudUpload, Check, AlertCircle, Clock, ChevronLeft,
 } from 'lucide-react'
-import { useMyTracks, useDeleteTrack } from '@/features/tracks/hooks/useTracks'
+import { Avatar } from '@/components/ui/Avatar'
+import { useMyTracks, useDeleteTrack, useUserTracks } from '@/features/tracks/hooks/useTracks'
+import { useProfile } from '@/features/profile/hooks/useProfile'
 import { trackService } from '@/features/tracks/services/trackService'
 import { useQueryClient } from '@tanstack/react-query'
+import { AudioTrackRow, VideoTrackRow, formatDuration, formatSize } from '@/features/tracks/components/TrackRow'
 import type { Track } from '@/types/track.types'
 
 type Filter = 'all' | 'audio' | 'video'
@@ -15,24 +17,10 @@ type Filter = 'all' | 'audio' | 'video'
 const ACCEPTED = '.mp3,.wav,.ogg,.flac,.aac,.m4a,.opus,.mp4,.mov,.webm,.avi,.mkv'
 const AUDIO_EXTS = ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'opus']
 
-function formatDuration(secs: number | null) {
-  if (!secs) return '--:--'
-  const m = Math.floor(secs / 60)
-  const s = secs % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-function formatSize(bytes: number | null) {
-  if (!bytes) return ''
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
 function isAudio(track: Track) {
   return track.type === 'AUDIO'
 }
 
-// ── Upload state ──────────────────────────────────────────────────────────────
 interface UploadItem {
   id: string
   file: File
@@ -43,15 +31,24 @@ interface UploadItem {
 }
 
 export function MusicPage() {
-  const { data: tracks = [], isLoading } = useMyTracks()
+  const { userId } = useParams<{ userId?: string }>()
+  const navigate = useNavigate()
+  const isOtherUser = !!userId
+
+  // Hooks de datos — siempre se llaman, pero solo uno estará activo
+  const { data: myTracks = [], isLoading: loadingMine } = useMyTracks()
+  const { data: userTracks = [], isLoading: loadingUser } = useUserTracks(userId ?? '')
+  const { data: profile } = useProfile(userId ?? '')
   const deleteTrack = useDeleteTrack()
   const queryClient = useQueryClient()
+
+  const tracks = isOtherUser ? userTracks : myTracks
+  const isLoading = isOtherUser ? loadingUser : loadingMine
 
   const [filter, setFilter] = useState<Filter>('all')
   const [isDragging, setIsDragging] = useState(false)
   const [uploads, setUploads] = useState<UploadItem[]>([])
   const [playingId, setPlayingId] = useState<string | null>(null)
-  const [showUploadZone, setShowUploadZone] = useState(false)
   const [videoModal, setVideoModal] = useState<Track | null>(null)
   const dropRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -66,7 +63,6 @@ export function MusicPage() {
   const videoCount = tracks.filter((t) => !isAudio(t)).length
   const totalDuration = tracks.reduce((acc, t) => acc + (t.duration ?? 0), 0)
 
-  // ── Drag & drop ─────────────────────────────────────────────────────────────
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -79,8 +75,7 @@ export function MusicPage() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    const files = Array.from(e.dataTransfer.files)
-    queueFiles(files)
+    queueFiles(Array.from(e.dataTransfer.files))
   }, [])
 
   const queueFiles = (files: File[]) => {
@@ -102,7 +97,6 @@ export function MusicPage() {
         setUploads((prev) => prev.map((u) => u.id === item.id ? { ...u, progress: pct } : u))
       })
       setUploads((prev) => prev.map((u) => u.id === item.id ? { ...u, status: 'done', progress: 100 } : u))
-      // Inyectar en ambos cachés para que Tu música y el feed global actualicen al instante
       queryClient.setQueryData<Track[]>(['tracks', 'mine'], (old) => [newTrack, ...(old ?? [])])
       queryClient.setQueryData<Track[]>(['tracks', 'all'], (old) => [newTrack, ...(old ?? [])])
       setTimeout(() => setUploads((prev) => prev.filter((u) => u.id !== item.id)), 3000)
@@ -114,7 +108,6 @@ export function MusicPage() {
   const updateTitle = (id: string, title: string) =>
     setUploads((prev) => prev.map((u) => u.id === id ? { ...u, title } : u))
 
-  // Close video modal on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setVideoModal(null) }
     window.addEventListener('keydown', handler)
@@ -125,37 +118,58 @@ export function MusicPage() {
     <div style={{ maxWidth: 760, margin: '0 auto', paddingLeft: 16, paddingRight: 16, paddingBottom: 40 }}>
 
       {/* Header */}
-      <div
-        style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, borderBottom: '1px solid var(--color-border)', marginBottom: 28 }}
-      >
+      <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, borderBottom: '1px solid var(--color-border)', marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {isOtherUser && (
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10, border: '1px solid var(--color-border)', flexShrink: 0 }}
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
           <div className="bg-purple-600/20 rounded-xl" style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Music2 size={18} className="text-purple-400" />
           </div>
-          <h1 className="text-[var(--color-text)]" style={{ fontSize: 17, fontWeight: 700 }}>Tu música</h1>
+          {isOtherUser && profile ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Avatar size="xs" src={profile.avatar} alt={profile.name} />
+              <h1 className="text-[var(--color-text)]" style={{ fontSize: 17, fontWeight: 700 }}>
+                Música de {profile.name}
+              </h1>
+            </div>
+          ) : (
+            <h1 className="text-[var(--color-text)]" style={{ fontSize: 17, fontWeight: 700 }}>Tu música</h1>
+          )}
         </div>
-        <button
-          onClick={() => inputRef.current?.click()}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid', transition: 'all 0.2s' }}
-          className="bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:scale-105"
-        >
-          <Upload size={15} />
-          Subir archivo
-        </button>
+
+        {!isOtherUser && (
+          <button
+            onClick={() => inputRef.current?.click()}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px', borderRadius: 999, fontSize: 13, fontWeight: 700, border: '1px solid', transition: 'all 0.2s' }}
+            className="bg-purple-600 text-white border-purple-500 hover:bg-purple-700 hover:scale-105"
+          >
+            <Upload size={15} />
+            Subir archivo
+          </button>
+        )}
       </div>
 
-      {/* Input file oculto */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPTED}
-        multiple
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          if (e.target.files) queueFiles(Array.from(e.target.files))
-          e.target.value = ''
-        }}
-      />
+      {/* Input file oculto (solo modo propio) */}
+      {!isOtherUser && (
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED}
+          multiple
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            if (e.target.files) queueFiles(Array.from(e.target.files))
+            e.target.value = ''
+          }}
+        />
+      )}
 
       {/* Stats */}
       {tracks.length > 0 && (
@@ -178,39 +192,41 @@ export function MusicPage() {
         </div>
       )}
 
-      {/* Zona de subida (drag & drop) */}
-      <div
-        ref={dropRef}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed transition-all duration-200 cursor-pointer ${
-          isDragging
-            ? 'border-purple-500 bg-purple-600/10'
-            : 'border-[var(--color-border)] hover:border-purple-500/50 hover:bg-purple-600/5 bg-[var(--color-surface-2)]'
-        }`}
-        style={{ borderRadius: 20, padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 24, userSelect: 'none' }}
-      >
+      {/* Zona de subida (solo modo propio) */}
+      {!isOtherUser && (
         <div
-          className={`rounded-2xl transition-colors ${isDragging ? 'bg-purple-600/25' : 'bg-purple-600/10'}`}
-          style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          ref={dropRef}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`border-2 border-dashed transition-all duration-200 cursor-pointer ${
+            isDragging
+              ? 'border-purple-500 bg-purple-600/10'
+              : 'border-[var(--color-border)] hover:border-purple-500/50 hover:bg-purple-600/5 bg-[var(--color-surface-2)]'
+          }`}
+          style={{ borderRadius: 20, padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 24, userSelect: 'none' }}
         >
-          <CloudUpload size={26} className={isDragging ? 'text-purple-300' : 'text-purple-400'} />
+          <div
+            className={`rounded-2xl transition-colors ${isDragging ? 'bg-purple-600/25' : 'bg-purple-600/10'}`}
+            style={{ width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <CloudUpload size={26} className={isDragging ? 'text-purple-300' : 'text-purple-400'} />
+          </div>
+          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <p className="text-[var(--color-text)]" style={{ fontSize: 15, fontWeight: 600 }}>
+              {isDragging ? 'Suelta aquí para subir' : 'Arrastra archivos o haz clic'}
+            </p>
+            <p className="text-[var(--color-text-muted)]" style={{ fontSize: 13 }}>
+              Audio: MP3, WAV, OGG, FLAC, AAC, M4A · Video: MP4, MOV, WEBM, AVI
+            </p>
+            <p className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>Máximo 200 MB por archivo</p>
+          </div>
         </div>
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <p className="text-[var(--color-text)]" style={{ fontSize: 15, fontWeight: 600 }}>
-            {isDragging ? 'Suelta aquí para subir' : 'Arrastra archivos o haz clic'}
-          </p>
-          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 13 }}>
-            Audio: MP3, WAV, OGG, FLAC, AAC, M4A · Video: MP4, MOV, WEBM, AVI
-          </p>
-          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>Máximo 200 MB por archivo</p>
-        </div>
-      </div>
+      )}
 
-      {/* Uploads en progreso */}
-      {uploads.length > 0 && (
+      {/* Uploads en progreso (solo modo propio) */}
+      {!isOtherUser && uploads.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
           {uploads.map((u) => (
             <div
@@ -218,7 +234,6 @@ export function MusicPage() {
               className="bg-[var(--color-surface-2)] border border-[var(--color-border)]"
               style={{ borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}
             >
-              {/* Icono estado */}
               <div style={{ flexShrink: 0 }}>
                 {u.status === 'done' ? (
                   <div className="bg-emerald-600/20 rounded-full" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -250,7 +265,6 @@ export function MusicPage() {
                 ) : (
                   <p className="text-[var(--color-text)] truncate" style={{ fontSize: 13, fontWeight: 600 }}>{u.title}</p>
                 )}
-
                 {u.status === 'uploading' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div className="bg-[var(--color-surface-3)]" style={{ flex: 1, height: 4, borderRadius: 4, overflow: 'hidden' }}>
@@ -314,7 +328,11 @@ export function MusicPage() {
         </div>
       ) : filtered.length === 0 && tracks.length === 0 ? (
         <div style={{ textAlign: 'center', paddingTop: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 14 }}>Aún no has subido ningún archivo. ¡Usa la zona de arriba para empezar!</p>
+          <p className="text-[var(--color-text-muted)]" style={{ fontSize: 14 }}>
+            {isOtherUser
+              ? `${profile?.name ?? 'Este usuario'} aún no ha subido ningún archivo.`
+              : 'Aún no has subido ningún archivo. ¡Usa la zona de arriba para empezar!'}
+          </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -326,16 +344,16 @@ export function MusicPage() {
                 isPlaying={playingId === track.id}
                 onPlay={() => setPlayingId(playingId === track.id ? null : track.id)}
                 onStop={() => setPlayingId(null)}
-                onDelete={() => deleteTrack.mutate(track.id)}
-                deleting={deleteTrack.isPending && deleteTrack.variables === track.id}
+                onDelete={!isOtherUser ? () => deleteTrack.mutate(track.id) : undefined}
+                deleting={!isOtherUser && deleteTrack.isPending && deleteTrack.variables === track.id}
               />
             ) : (
               <VideoTrackRow
                 key={track.id}
                 track={track}
                 onOpen={() => setVideoModal(track)}
-                onDelete={() => deleteTrack.mutate(track.id)}
-                deleting={deleteTrack.isPending && deleteTrack.variables === track.id}
+                onDelete={!isOtherUser ? () => deleteTrack.mutate(track.id) : undefined}
+                deleting={!isOtherUser && deleteTrack.isPending && deleteTrack.variables === track.id}
               />
             )
           )}
@@ -367,167 +385,6 @@ export function MusicPage() {
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-// ── Fila de audio ─────────────────────────────────────────────────────────────
-function AudioTrackRow({
-  track, isPlaying, onPlay, onStop, onDelete, deleting,
-}: {
-  track: Track
-  isPlaying: boolean
-  onPlay: () => void
-  onStop: () => void
-  onDelete: () => void
-  deleting: boolean
-}) {
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const timeAgo = formatDistanceToNow(new Date(track.createdAt), { addSuffix: true, locale: es })
-
-  useEffect(() => {
-    if (!audioRef.current) return
-    if (isPlaying) {
-      audioRef.current.play().catch(() => {})
-    } else {
-      audioRef.current.pause()
-      audioRef.current.currentTime = 0
-    }
-  }, [isPlaying])
-
-  return (
-    <div
-      className={`border transition-all duration-200 ${isPlaying ? 'border-purple-500/50 bg-purple-600/8' : 'border-[var(--color-border)] bg-[var(--color-surface-2)] hover:border-purple-500/25'}`}
-      style={{ borderRadius: 16, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14 }}
-    >
-      {/* Play button */}
-      <button
-        onClick={onPlay}
-        className={`shrink-0 rounded-xl transition-all duration-200 ${isPlaying ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-600/15 hover:bg-purple-600/30'}`}
-        style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      >
-        {isPlaying
-          ? <Pause size={18} className="text-white" />
-          : <Play size={18} className="text-purple-400" style={{ marginLeft: 2 }} />
-        }
-      </button>
-
-      {/* Waveform animado cuando reproduce */}
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, height: 28 }}>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className={isPlaying ? 'bg-purple-500' : 'bg-purple-600/25'}
-            style={{
-              width: 3,
-              borderRadius: 2,
-              height: isPlaying ? undefined : `${8 + i * 4}px`,
-              ...(isPlaying && {
-                animation: `waveBar ${0.6 + i * 0.1}s ease-in-out infinite alternate`,
-                animationDelay: `${i * 0.08}s`,
-              }),
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <p className="text-[var(--color-text)] truncate" style={{ fontSize: 14, fontWeight: 600 }}>{track.title}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span
-            className="rounded-full bg-purple-600/15 border border-purple-500/25 text-purple-300"
-            style={{ padding: '2px 8px', fontSize: 11, fontWeight: 600 }}
-          >
-            AUDIO
-          </span>
-          <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{formatDuration(track.duration)}</span>
-          {track.fileSize && <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{formatSize(track.fileSize)}</span>}
-          <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{timeAgo}</span>
-        </div>
-      </div>
-
-      {/* Eliminar */}
-      <button
-        onClick={onDelete}
-        disabled={deleting}
-        className="text-[var(--color-text-muted)] hover:text-red-400 transition-colors disabled:opacity-40 shrink-0"
-      >
-        <Trash2 size={15} />
-      </button>
-
-      <audio ref={audioRef} src={track.url} onEnded={onStop} preload="none" />
-    </div>
-  )
-}
-
-// ── Fila de video ─────────────────────────────────────────────────────────────
-function VideoTrackRow({
-  track, onOpen, onDelete, deleting,
-}: {
-  track: Track
-  onOpen: () => void
-  onDelete: () => void
-  deleting: boolean
-}) {
-  const timeAgo = formatDistanceToNow(new Date(track.createdAt), { addSuffix: true, locale: es })
-
-  return (
-    <div
-      className="border border-[var(--color-border)] bg-[var(--color-surface-2)] hover:border-blue-500/25 transition-all duration-200"
-      style={{ borderRadius: 16, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14 }}
-    >
-      {/* Thumbnail o placeholder */}
-      <button
-        onClick={onOpen}
-        className="shrink-0 overflow-hidden rounded-xl group relative"
-        style={{ width: 72, height: 44, background: 'linear-gradient(135deg, rgba(37,99,235,0.3), rgba(79,70,229,0.3))' }}
-      >
-        {track.coverUrl ? (
-          <img src={track.coverUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Video size={18} className="text-blue-400" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Play size={16} className="text-white" style={{ marginLeft: 2 }} />
-        </div>
-      </button>
-
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <p className="text-[var(--color-text)] truncate" style={{ fontSize: 14, fontWeight: 600 }}>{track.title}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span
-            className="rounded-full bg-blue-600/15 border border-blue-500/25 text-blue-300"
-            style={{ padding: '2px 8px', fontSize: 11, fontWeight: 600 }}
-          >
-            VIDEO
-          </span>
-          <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{formatDuration(track.duration)}</span>
-          {track.fileSize && <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{formatSize(track.fileSize)}</span>}
-          <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{timeAgo}</span>
-        </div>
-      </div>
-
-      {/* Ver */}
-      <button
-        onClick={onOpen}
-        className="border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 transition-colors text-blue-300"
-        style={{ padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600, flexShrink: 0 }}
-      >
-        Ver
-      </button>
-
-      {/* Eliminar */}
-      <button
-        onClick={onDelete}
-        disabled={deleting}
-        className="text-[var(--color-text-muted)] hover:text-red-400 transition-colors disabled:opacity-40 shrink-0"
-      >
-        <Trash2 size={15} />
-      </button>
     </div>
   )
 }

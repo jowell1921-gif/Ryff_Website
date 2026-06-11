@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { useUpdateProfile } from '../hooks/useProfile'
 import { LocationAutocomplete } from './LocationAutocomplete'
 import { TagSelector } from './TagSelector'
-import { INSTRUMENTS, GENRES } from '../constants/musicData'
+import { INSTRUMENTS, GENRES, ROLES } from '../constants/musicData'
 import type { UserProfile } from '@/types/user.types'
 
 const editSchema = z.object({
@@ -25,6 +25,7 @@ interface EditProfileModalProps {
 
 export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
   const [location, setLocation] = useState(profile.location ?? '')
+  const [role, setRole] = useState(profile.role ?? '')
   const [mainInstrument, setMainInstrument] = useState<string[]>(
     profile.mainInstrument ? [profile.mainInstrument] : []
   )
@@ -56,7 +57,7 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
 
   const onSubmit = (data: EditFormData) => {
     updateProfile(
-      { ...data, location, mainInstrument: mainInstrument[0] ?? null, instruments, genres },
+      { ...data, location, role: role || undefined, mainInstrument: mainInstrument[0] ?? null, instruments, genres },
       { onSuccess: onClose }
     )
   }
@@ -88,6 +89,22 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
             {...register('name')}
           />
 
+          {/* Soy */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label className="text-sm font-medium text-[var(--color-text-muted)]">Soy</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text)] outline-none focus:border-purple-500 transition-colors cursor-pointer"
+              style={{ padding: '10px 12px', appearance: 'auto' }}
+            >
+              <option value="">— Sin especificar —</option>
+              {ROLES.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Bio */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label className="text-sm font-medium text-[var(--color-text-muted)]">Bio</label>
@@ -108,7 +125,7 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
 
           {/* Instrumento principal */}
           <TagSelector
-            label="Instrumento principal"
+            label="Mi instrumento principal"
             placeholder="Buscar instrumento..."
             options={INSTRUMENTS}
             selected={mainInstrument}
@@ -118,7 +135,7 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
 
           {/* Instrumentos */}
           <TagSelector
-            label="Instrumentos"
+            label="Instrumentos que puedo tocar"
             placeholder="Buscar instrumento..."
             options={INSTRUMENTS}
             selected={instruments}
@@ -128,7 +145,7 @@ export function EditProfileModal({ profile, onClose }: EditProfileModalProps) {
 
           {/* Géneros musicales */}
           <TagSelector
-            label="Géneros musicales"
+            label="Géneros musicales favoritos"
             placeholder="Buscar género..."
             options={GENRES}
             selected={genres}

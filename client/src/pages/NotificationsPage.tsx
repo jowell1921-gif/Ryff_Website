@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Sparkles, UserPlus, MessageCircle, AtSign, X, Trash2, CheckSquare, Square, Clapperboard } from 'lucide-react'
+import { Sparkles, UserPlus, MessageCircle, AtSign, X, Trash2, CheckSquare, Square, Clapperboard, Repeat2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Avatar } from '@/components/ui/Avatar'
 import {
@@ -27,14 +27,16 @@ const SECTIONS: {
   Icon: React.ElementType
   iconColor: string
   badgeBg: string
+  badgeStyle?: React.CSSProperties
   emptyText: string
 }[] = [
   {
     type: 'POST_LIKE',
     label: 'Reacciones',
     Icon: Sparkles,
-    iconColor: 'text-orange-400',
-    badgeBg: 'bg-orange-500',
+    iconColor: 'text-purple-400',
+    badgeBg: '',
+    badgeStyle: { background: 'linear-gradient(to right, #9333ea, #4f46e5)' },
     emptyText: 'Sin reacciones todavía',
   },
   {
@@ -77,11 +79,20 @@ const SECTIONS: {
     badgeBg: 'bg-cyan-600',
     emptyText: 'Sin comentarios en reels todavía',
   },
+  {
+    type: 'POST_REPOST',
+    label: 'Difusiones',
+    Icon: Repeat2,
+    iconColor: 'text-green-400',
+    badgeBg: 'bg-green-600',
+    emptyText: 'Nadie ha difundido tus posts todavía',
+  },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function notificationText(n: AppNotification): string {
   if (n.type === 'FOLLOW') return 'ha empezado a seguirte'
+  if (n.type === 'POST_REPOST') return 'difundió tu publicación'
   if (n.type === 'POST_LIKE') {
     const emoji = n.reactionType ? REACTION_EMOJI[n.reactionType] : '👍'
     return `reaccionó ${emoji} a tu post`
@@ -96,10 +107,14 @@ function notificationText(n: AppNotification): string {
   return ''
 }
 
+function stripMentionBrackets(text: string) {
+  return text.replace(/@\[([^\]]+)\]/g, '@$1')
+}
+
 function notificationPreview(n: AppNotification): string | null {
-  if ((n.type === 'POST_LIKE' || n.type === 'POST_COMMENT') && n.post) return n.post.content
+  if ((n.type === 'POST_LIKE' || n.type === 'POST_COMMENT' || n.type === 'POST_REPOST') && n.post) return stripMentionBrackets(n.post.content)
   if ((n.type === 'REEL_LIKE' || n.type === 'REEL_COMMENT') && n.reel?.caption) return n.reel.caption
-  if (n.type === 'MENTION' && n.comment) return n.comment.content
+  if (n.type === 'MENTION' && n.comment) return stripMentionBrackets(n.comment.content)
   return null
 }
 
@@ -229,7 +244,7 @@ export function NotificationsPage() {
                     {section.label}
                   </span>
                   {unread > 0 && (
-                    <span className={`${section.badgeBg} text-white`} style={{ fontSize: 11, fontWeight: 700, borderRadius: 999, padding: '2px 8px' }}>
+                    <span className={`${section.badgeBg} text-white`} style={{ fontSize: 11, fontWeight: 700, borderRadius: 999, padding: '2px 8px', ...section.badgeStyle }}>
                       {unread} nueva{unread !== 1 ? 's' : ''}
                     </span>
                   )}
@@ -296,7 +311,7 @@ function NotificationRow({
 
   const handleClick = () => {
     if (selectMode) { onToggleSelect(); return }
-    if (n.type === 'FOLLOW') navigate(`/profile/${n.from.id}`)
+    if (n.type === 'FOLLOW' || n.type === 'POST_REPOST') navigate(`/profile/${n.from.id}`)
     else if (n.type === 'REEL_LIKE' || n.type === 'REEL_COMMENT') navigate('/reels')
     else if (n.post) navigate(`/profile/${n.from.id}`)
   }
@@ -333,7 +348,7 @@ function NotificationRow({
           <Avatar size="sm" src={n.from.avatar} alt={n.from.name} />
           <span
             className={`${section.badgeBg} absolute`}
-            style={{ bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', ...section.badgeStyle }}
           >
             {reactionBadgeContent(n, section)}
           </span>

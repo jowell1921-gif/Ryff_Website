@@ -15,8 +15,11 @@ import { NotificationsPage } from '@/pages/NotificationsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { AnnouncementsPage } from '@/pages/AnnouncementsPage'
 import { MusicPage } from '@/pages/MusicPage'
+import { GoogleCallbackPage } from '@/pages/GoogleCallbackPage'
+import { ComingSoonPage } from '@/pages/ComingSoonPage'
 
 export const router = createBrowserRouter([
+  { path: '/auth/google/callback', element: <GoogleCallbackPage /> },
   {
     path: '/auth',
     element: <AuthLayout />,
@@ -46,7 +49,9 @@ export const router = createBrowserRouter([
           { path: 'messages/:conversationId', element: <MessagesPage /> },
           { path: 'announcements', element: <AnnouncementsPage /> },
           { path: 'music', element: <MusicPage /> },
+          { path: 'music/:userId', element: <MusicPage /> },
           { path: 'settings', element: <SettingsPage /> },
+          { path: 'coming-soon', element: <ComingSoonPage /> },
         ],
       },
     ],

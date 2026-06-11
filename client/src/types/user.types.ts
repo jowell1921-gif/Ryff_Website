@@ -16,6 +16,7 @@ export interface UserProfile {
   location: string | null
   instruments: string[]
   mainInstrument: string | null
+  role: string | null
   genres: string[]
   createdAt: string
   isFollowing: boolean

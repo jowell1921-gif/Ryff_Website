@@ -1,12 +1,12 @@
 import { Outlet } from 'react-router-dom'
-import { Music2, Mic2, Guitar, Drum } from 'lucide-react'
+import { Mic2, Guitar, Drum } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export function AuthLayout() {
   return (
     <div className="min-h-screen flex bg-[var(--color-surface)]">
 
-      {/* Panel izquierdo — branding visual */}
+      {/* Panel izquierdo — branding visual (solo desktop) */}
       <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 overflow-hidden">
 
         {/* Fondo con gradiente cinematográfico */}
@@ -44,16 +44,17 @@ export function AuthLayout() {
           <Mic2 size={48} />
         </motion.div>
 
-        {/* Logo */}
-        <div className="relative flex items-center gap-3 z-10">
-          <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center">
-            <Music2 size={18} className="text-white" />
-          </div>
-          <span className="text-xl font-bold text-white tracking-tight">RYFF</span>
-        </div>
+        <div />
 
-        {/* Tagline central */}
-        <div className="relative z-10">
+        {/* Logo + Tagline central */}
+        <div className="relative z-10" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <motion.img
+            src="/logo-sin.png"
+            alt="RYFF"
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ height: 300, objectFit: 'contain', marginBottom: -84 }}
+          />
           <h1 className="text-4xl font-bold text-white leading-tight mb-4">
             Tu música.<br />
             Tu comunidad.<br />
@@ -65,7 +66,7 @@ export function AuthLayout() {
         </div>
 
         {/* Stat */}
-        <div className="relative z-10 flex items-center gap-4">
+        <div className="relative z-10 flex items-center justify-center gap-4">
           <div className="flex -space-x-2">
             {['A', 'B', 'C', 'D'].map((letter) => (
               <div
@@ -83,18 +84,59 @@ export function AuthLayout() {
       </div>
 
       {/* Panel derecho — formulario */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center">
-              <Music2 size={16} className="text-white" />
-            </div>
-            <span className="text-lg font-bold text-[var(--color-text)]">RYFF</span>
-          </div>
-          <Outlet />
-        </div>
-      </div>
+      <div className="w-full lg:w-1/2 flex flex-col lg:items-center lg:justify-center">
 
+        {/* Header móvil animado (oculto en desktop) */}
+        <div className="lg:hidden relative overflow-hidden flex flex-col items-center" style={{ paddingTop: 48, paddingBottom: 32, background: 'linear-gradient(to bottom, rgba(88,28,135,0.35) 0%, transparent 100%)' }}>
+
+          {/* Esfera de luz */}
+          <div className="absolute top-0 left-1/4 w-40 h-40 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Guitarra — flota */}
+          <motion.div
+            animate={{ y: [0, -14, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-5 right-8 text-purple-500/25 pointer-events-none"
+          >
+            <Guitar size={54} />
+          </motion.div>
+
+          {/* Batería — se balancea */}
+          <motion.div
+            animate={{ rotate: [0, 8, -8, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute bottom-4 left-6 text-purple-500/20 pointer-events-none"
+          >
+            <Drum size={40} />
+          </motion.div>
+
+          {/* Micrófono — pulsa */}
+          <motion.div
+            animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.28, 0.1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-1/2 left-8 text-purple-400 pointer-events-none"
+          >
+            <Mic2 size={32} />
+          </motion.div>
+
+          {/* Logo animado */}
+          <motion.img
+            src="/logo-sin.png"
+            alt="RYFF"
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ height: 110, objectFit: 'contain', position: 'relative', zIndex: 1 }}
+          />
+        </div>
+
+        {/* Formulario */}
+        <div className="flex-1 w-full flex items-start lg:items-center justify-center" style={{ padding: '32px 24px 48px' }}>
+          <div className="w-full max-w-md">
+            <Outlet />
+          </div>
+        </div>
+
+      </div>
     </div>
   )
 }

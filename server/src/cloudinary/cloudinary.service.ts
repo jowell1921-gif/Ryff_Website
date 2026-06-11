@@ -33,6 +33,26 @@ export class CloudinaryService {
     })
   }
 
+  uploadPostMedia(
+    buffer: Buffer,
+    mimetype: string,
+  ): Promise<{ url: string; publicId: string }> {
+    const isImage = mimetype.startsWith('image/')
+    const resourceType = isImage ? 'image' : 'video'
+    const folder = isImage ? 'ryff/posts/images' : mimetype.startsWith('audio/') ? 'ryff/posts/audio' : 'ryff/posts/video'
+
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: resourceType, folder },
+        (error, result) => {
+          if (error || !result) return reject(error)
+          resolve({ url: result.secure_url, publicId: result.public_id })
+        },
+      )
+      Readable.from(buffer).pipe(stream)
+    })
+  }
+
   uploadTrack(
     buffer: Buffer,
     type: 'AUDIO' | 'VIDEO',

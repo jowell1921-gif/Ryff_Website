@@ -1,9 +1,18 @@
 import { useRef, useEffect, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Play, Pause, Music2, Video, X } from 'lucide-react'
+import { Play, Pause, Music2, Video, X, MessageCircle, Share2, Trash2, Send } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
+import { useReactToTrack, useTrackComments, useCreateTrackComment, useDeleteTrackComment } from '../hooks/useTracks'
+import { useAuthStore } from '@/stores/authStore'
 import type { Track } from '@/types/track.types'
+import type { ReactionType } from '@/types/post.types'
+
+const REACTIONS: { type: ReactionType; emoji: string; activeColor: string; activeKey: keyof Track; countKey: keyof Track }[] = [
+  { type: 'APLAUSO', emoji: '👏', activeColor: '#a855f7', activeKey: 'isClapped',  countKey: 'clapCount'    },
+  { type: 'FIRE',    emoji: '🔥', activeColor: '#f97316', activeKey: 'isFired',    countKey: 'fireCount'    },
+  { type: 'ASOMBRA', emoji: '😮', activeColor: '#3b82f6', activeKey: 'isAsombra',  countKey: 'asombraCount' },
+]
 
 function formatDuration(secs: number | null) {
   if (!secs) return '--:--'
@@ -12,13 +21,104 @@ function formatDuration(secs: number | null) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+const MAX_TRACK_COMMENT = 150
+
+function TrackCommentSection({ trackId }: { trackId: string }) {
+  const [text, setText] = useState('')
+  const currentUser = useAuthStore((s) => s.user)
+  const { data: comments = [], isLoading } = useTrackComments(trackId)
+  const createComment = useCreateTrackComment(trackId)
+  const deleteComment = useDeleteTrackComment(trackId)
+
+  const remaining = MAX_TRACK_COMMENT - text.length
+
+  const handleSubmit = () => {
+    const trimmed = text.trim()
+    if (!trimmed || remaining < 0 || createComment.isPending) return
+    createComment.mutate(trimmed, { onSuccess: () => setText('') })
+  }
+
+  return (
+    <div
+      className="border-t border-[var(--color-border)]"
+      style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 12 }}
+    >
+      {isLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+          <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : comments.length === 0 ? (
+        <p className="text-[var(--color-text-muted)]" style={{ fontSize: 12, textAlign: 'center' }}>
+          Sin comentarios aún.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {comments.map((c) => (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <Avatar size="xs" src={c.author.avatar} alt={c.author.name} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span className="text-[var(--color-text)]" style={{ fontSize: 12, fontWeight: 700 }}>{c.author.name} </span>
+                <span className="text-[var(--color-text-muted)]" style={{ fontSize: 12 }}>{c.content}</span>
+              </div>
+              {currentUser?.id === c.author.id && (
+                <button
+                  onClick={() => deleteComment.mutate(c.id)}
+                  className="text-[var(--color-text-muted)] hover:text-red-400 transition-colors"
+                  style={{ flexShrink: 0 }}
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        className={`border bg-[var(--color-surface)] ${remaining < 0 ? 'border-red-500/50' : 'border-[var(--color-border)]'}`}
+        style={{ borderRadius: 10, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}
+      >
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value.slice(0, MAX_TRACK_COMMENT + 10))}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit() } }}
+          placeholder="Escribe un comentario..."
+          className="bg-transparent text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+          style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13 }}
+        />
+        <span className={`text-xs ${remaining < 20 ? (remaining < 0 ? 'text-red-400' : 'text-orange-400') : 'text-[var(--color-text-muted)]'}`}>
+          {remaining}
+        </span>
+        <button
+          onClick={handleSubmit}
+          disabled={!text.trim() || remaining < 0 || createComment.isPending}
+          className="text-purple-400 disabled:opacity-30 hover:text-purple-300 transition-colors"
+        >
+          <Send size={14} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function TrackFeedCard({ track }: { track: Track }) {
   const isAudio = track.type === 'AUDIO'
   const [playing, setPlaying] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const reactToTrack = useReactToTrack()
   const [showVideo, setShowVideo] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const audioRef = useRef<HTMLAudioElement>(null)
   const timeAgo = formatDistanceToNow(new Date(track.createdAt), { addSuffix: true, locale: es })
+
+  const handleShare = async () => {
+    const shareData = { title: track.title, text: `${track.author.name} - ${track.title}`, url: track.url }
+    if (navigator.share) {
+      try { await navigator.share(shareData) } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(track.url)
+    }
+  }
 
   useEffect(() => {
     const el = audioRef.current
@@ -166,6 +266,64 @@ export function TrackFeedCard({ track }: { track: Track }) {
             )}
           </button>
         )}
+        {/* Footer: comentar + compartir + reacciones */}
+        <div
+          className="border-t border-[var(--color-border)]"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10 }}
+        >
+          {/* Comentar + Compartir */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button
+              onClick={() => setShowComments((v) => !v)}
+              className="flex items-center gap-1.5 group"
+            >
+              <MessageCircle
+                size={16}
+                className={`transition-colors ${showComments ? 'text-purple-400' : 'text-[var(--color-text-muted)] group-hover:text-purple-400'}`}
+              />
+              <span className={`text-xs font-medium ${showComments ? 'text-purple-400' : 'text-[var(--color-text-muted)]'}`}>
+                {track.commentsCount}
+              </span>
+            </button>
+
+            <button onClick={handleShare} className="flex items-center group">
+              <Share2
+                size={16}
+                className="text-[var(--color-text-muted)] group-hover:text-purple-400 transition-colors"
+              />
+            </button>
+          </div>
+
+          {/* Reacciones */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {REACTIONS.map(({ type, emoji, activeColor, activeKey, countKey }) => {
+              const active = track[activeKey] as boolean
+              const count = track[countKey] as number
+              return (
+                <button
+                  key={type}
+                  onClick={() => reactToTrack.mutate({ trackId: track.id, type })}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    padding: '5px 10px', borderRadius: 999,
+                    fontSize: 13, fontWeight: 600,
+                    color: active ? activeColor : 'var(--color-text-muted)',
+                    background: active ? `${activeColor}18` : 'transparent',
+                    border: `1px solid ${active ? activeColor + '50' : 'transparent'}`,
+                    transition: 'all 0.15s',
+                  }}
+                  className="hover:opacity-80"
+                >
+                  <span style={{ fontSize: 15 }}>{emoji}</span>
+                  {count > 0 && <span>{count}</span>}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Sección de comentarios */}
+        {showComments && <TrackCommentSection trackId={track.id} />}
       </article>
 
       {/* Modal video */}

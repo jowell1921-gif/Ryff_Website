@@ -11,17 +11,19 @@ model User {
   id          String   @id @default(cuid())
   email       String   @unique
   name        String
-  password    String
+  password    String?
   avatar      String?
   bio         String?
   location    String?
   instruments     String[]
   mainInstrument  String?
+  role            String?
   genres          String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   posts         Post[]
+  reposts       Repost[]
   followers     Follow[]       @relation("following")
   following     Follow[]       @relation("follower")
   conversations Conversation[] @relation("ConversationParticipants")
@@ -31,6 +33,8 @@ model User {
   reelLikes          ReelLike[]
   reelComments       ReelComment[]
   postLikes          PostLike[]
+  trackLikes         TrackLike[]
+  trackComments      TrackComment[]
   comments           Comment[]
   sentNotifications     Notification[] @relation("NotificationFrom")
   receivedNotifications Notification[] @relation("NotificationTo")
@@ -44,15 +48,31 @@ model Post {
   id        String        @id @default(cuid())
   content   String
   mediaUrl  String?
+  mediaName String?
+  mediaType String?
   authorId  String
   author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes     PostLike[]
   comments  Comment[]
+  reposts   Repost[]
   notifications Notification[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
   @@map("posts")
+}
+
+model Repost {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  comment   String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@map("reposts")
 }
 
 model Comment {
@@ -161,6 +181,7 @@ enum NotificationType {
   MENTION
   REEL_LIKE
   REEL_COMMENT
+  POST_REPOST
 }
 
 model Notification {
@@ -210,7 +231,7 @@ enum TrackType {
 }
 
 model Track {
-  id        String    @id @default(cuid())
+  id        String      @id @default(cuid())
   title     String
   type      TrackType
   url       String
@@ -220,10 +241,36 @@ model Track {
   mimeType  String?
   fileSize  Int?
   authorId  String
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes     TrackLike[]
+  comments  TrackComment[]
+  createdAt DateTime    @default(now())
 
   @@map("tracks")
+}
+
+model TrackComment {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  trackId   String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("track_comments")
+}
+
+model TrackLike {
+  userId    String
+  trackId   String
+  type      ReactionType
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+
+  @@id([userId, trackId, type])
+  @@map("track_likes")
 }
 
 model Reel {

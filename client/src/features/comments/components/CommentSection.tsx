@@ -29,11 +29,13 @@ function renderContent(content: string) {
 }
 
 export function CommentSection({ postId }: CommentSectionProps) {
+  const MAX_COMMENT = 150
   const [text, setText] = useState('')
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionStart, setMentionStart] = useState(-1)
   const [mentionResults, setMentionResults] = useState<UserProfile[]>([])
   const [isSearchingMention, setIsSearchingMention] = useState(false)
+  const [selectedMentions, setSelectedMentions] = useState<string[]>([])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -64,7 +66,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
   }, [mentionQuery])
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
+    const val = e.target.value.slice(0, MAX_COMMENT)
     setText(val)
 
     const cursor = e.target.selectionStart ?? val.length
@@ -84,7 +86,8 @@ export function CommentSection({ postId }: CommentSectionProps) {
     const before = text.slice(0, mentionStart)
     const mentionLen = (mentionQuery?.length ?? 0) + 1 // +1 for @
     const after = text.slice(mentionStart + mentionLen)
-    setText(`${before}@[${user.name}] ${after}`)
+    setText(`${before}@${user.name} ${after}`)
+    setSelectedMentions((prev) => [...prev, user.name])
     setMentionQuery(null)
     setMentionResults([])
     inputRef.current?.focus()
@@ -98,7 +101,19 @@ export function CommentSection({ postId }: CommentSectionProps) {
   const handleSubmit = () => {
     const trimmed = text.trim()
     if (!trimmed || createComment.isPending) return
-    createComment.mutate(trimmed, { onSuccess: () => setText('') })
+
+    let processed = trimmed
+    selectedMentions.forEach((name) => {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      processed = processed.replace(new RegExp(`@${escaped}(?=\\s|$)`, 'g'), `@[${name}]`)
+    })
+
+    createComment.mutate(processed, {
+      onSuccess: () => {
+        setText('')
+        setSelectedMentions([])
+      },
+    })
     closeMention()
   }
 
@@ -156,7 +171,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
                     className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-text-muted)] hover:text-red-400 shrink-0"
                     style={{ marginTop: 10 }}
                   >
-                    <Trash2 size={13} />
+                    <Trash2 size={18} />
                   </button>
                 )}
               </div>
@@ -213,12 +228,17 @@ export function CommentSection({ postId }: CommentSectionProps) {
               className="placeholder:text-[var(--color-text-muted)] text-[var(--color-text)]"
               style={{ flex: 1, background: 'transparent', fontSize: 12, outline: 'none' }}
             />
+            {text.length > 400 && (
+              <span className={`text-[10px] shrink-0 ${text.length >= MAX_COMMENT ? 'text-red-400' : 'text-[var(--color-text-muted)]'}`}>
+                {text.length}/{MAX_COMMENT}
+              </span>
+            )}
             <button
               onClick={handleSubmit}
               disabled={!text.trim() || createComment.isPending}
               className="text-purple-400 hover:text-purple-300 disabled:opacity-30 transition-colors shrink-0"
             >
-              <Send size={13} />
+              <Send size={18} />
             </button>
           </div>
         </div>
