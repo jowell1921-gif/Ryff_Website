@@ -143,8 +143,8 @@ export class AuthService {
       tokens: {
         accessToken: this.jwt.sign(payload),
         refreshToken: this.jwt.sign(payload, {
-          secret: this.config.get('JWT_REFRESH_SECRET'),
-          expiresIn: this.config.get('JWT_REFRESH_EXPIRES_IN'),
+          secret: this.config.get('JWT_REFRESH_SECRET') ?? 'fallback-refresh-secret',
+          expiresIn: this.config.get('JWT_REFRESH_EXPIRES_IN') ?? '30d',
         }),
       },
     }
