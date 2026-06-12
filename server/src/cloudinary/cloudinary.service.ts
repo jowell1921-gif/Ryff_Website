@@ -53,6 +53,19 @@ export class CloudinaryService {
     })
   }
 
+  uploadAvatar(buffer: Buffer): Promise<{ url: string; publicId: string }> {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: 'image', folder: 'ryff/avatars', transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }] },
+        (error, result) => {
+          if (error || !result) return reject(error)
+          resolve({ url: result.secure_url, publicId: result.public_id })
+        },
+      )
+      Readable.from(buffer).pipe(stream)
+    })
+  }
+
   uploadTrack(
     buffer: Buffer,
     type: 'AUDIO' | 'VIDEO',

@@ -16,16 +16,19 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { diskStorage } from 'multer'
-import { extname, join } from 'path'
+import { memoryStorage } from 'multer'
 import { UsersService } from './users.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
 import { CurrentUser } from '../auth/current-user.decorator'
+import { CloudinaryService } from '../cloudinary/cloudinary.service'
 
 @Controller('users')
 @UseGuards(AuthGuard('jwt'))
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private cloudinary: CloudinaryService,
+  ) {}
 
   @Get('suggestions')
   getSuggestions(@CurrentUser('sub') viewerId: string) {
@@ -62,26 +65,19 @@ export class UsersController {
   // Subir avatar
   @Post('me/avatar')
   @UseInterceptors(FileInterceptor('avatar', {
-    storage: diskStorage({
-      destination: join(process.cwd(), 'uploads', 'avatars'),
-      filename: (_req, file, cb) => {
-        const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`
-        cb(null, unique)
-      },
-    }),
+    storage: memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
       if (!file.mimetype.match(/^image\//)) return cb(new BadRequestException('Solo imágenes'), false)
       cb(null, true)
     },
   }))
-  uploadAvatar(
+  async uploadAvatar(
     @CurrentUser('sub') userId: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const port = process.env.PORT ?? 3000
-    const avatarUrl = `http://localhost:${port}/uploads/avatars/${file.filename}`
-    return this.usersService.updateAvatar(userId, avatarUrl)
+    const { url } = await this.cloudinary.uploadAvatar(file.buffer)
+    return this.usersService.updateAvatar(userId, url)
   }
 
   // Perfil público — incluye isFollowing para el viewer
