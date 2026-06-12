@@ -7,7 +7,9 @@ export const socketClient = {
   connect(token: string): Socket {
     if (socket?.connected) return socket
 
-    socket = io('http://localhost:3000', {
+    const serverUrl = import.meta.env.VITE_API_URL?.replace('/api', '') ?? 'http://localhost:3000'
+
+    socket = io(serverUrl, {
       auth: { token },
       transports: ['websocket'],
     })
