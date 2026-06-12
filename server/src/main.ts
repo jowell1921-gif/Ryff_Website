@@ -21,8 +21,13 @@ async function bootstrap() {
     }),
   )
 
+  const allowedOrigins = [
+    process.env.CLIENT_URL,
+    'http://localhost:5173',
+  ].filter(Boolean)
+
   app.enableCors({
-    origin: true, // en desarrollo acepta cualquier origen; en producción usar CLIENT_URL
+    origin: allowedOrigins,
     credentials: true,
   })
 

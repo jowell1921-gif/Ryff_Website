@@ -17,6 +17,8 @@ import { AnnouncementsPage } from '@/pages/AnnouncementsPage'
 import { MusicPage } from '@/pages/MusicPage'
 import { GoogleCallbackPage } from '@/pages/GoogleCallbackPage'
 import { ComingSoonPage } from '@/pages/ComingSoonPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 
 export const router = createBrowserRouter([
   { path: '/auth/google/callback', element: <GoogleCallbackPage /> },
@@ -27,6 +29,8 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/auth/login" replace /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
     ],
   },
   {

@@ -1,10 +1,12 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common'
+import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
+import * as crypto from 'crypto'
 import { PrismaService } from '../prisma/prisma.service'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
+import { MailService } from '../mail/mail.service'
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private mail: MailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -54,6 +57,45 @@ export class AuthService {
     }
 
     return this.buildAuthResponse(user)
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } })
+
+    if (!user) throw new BadRequestException('No encontramos ninguna cuenta con ese email.')
+    if (!user.password) throw new BadRequestException('Esta cuenta usa Google. Inicia sesión con Google.')
+
+    const token = crypto.randomBytes(32).toString('hex')
+    const expiry = new Date(Date.now() + 60 * 60 * 1000) // 1 hora
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetToken: token, passwordResetExpiry: expiry },
+    })
+
+    await this.mail.sendPasswordReset(user.email, user.name, token)
+
+    return { message: 'Te hemos enviado un enlace de recuperación. Revisa tu bandeja de entrada.' }
+  }
+
+  async resetPassword(token: string, password: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpiry: { gt: new Date() },
+      },
+    })
+
+    if (!user) throw new BadRequestException('El enlace ha expirado o no es válido.')
+
+    const hash = await bcrypt.hash(password, 12)
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { password: hash, passwordResetToken: null, passwordResetExpiry: null },
+    })
+
+    return { message: 'Contraseña actualizada. Ya puedes iniciar sesión.' }
   }
 
   getMe(userId: string) {

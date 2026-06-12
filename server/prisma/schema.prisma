@@ -19,6 +19,8 @@ model User {
   mainInstrument  String?
   role            String?
   genres          String[]
+  passwordResetToken   String?   @unique
+  passwordResetExpiry  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
